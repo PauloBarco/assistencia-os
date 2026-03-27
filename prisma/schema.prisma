@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model OrdemServico {
+  id            String   @id @default(uuid())
+  numeroExterno String
+  origem        String
+  descricao     String?
+  statusAtual   Status   @default(RECEBIDO)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  equipamento Equipamento?
+  eventos     Evento[]
+  servicos    ServicoRealizado[]
+}
+
+model Equipamento {
+  id      String @id @default(uuid())
+  tipo    String
+  marca   String
+  modelo  String
+  serial  String?
+  defeito String
+
+  ordemId String @unique
+  ordem   OrdemServico @relation(fields: [ordemId], references: [id])
+}
+
+model Evento {
+  id        String   @id @default(uuid())
+  tipo      TipoEvento
+  descricao String
+  createdAt DateTime @default(now())
+
+  ordemId String
+  ordem   OrdemServico @relation(fields: [ordemId], references: [id])
+}
+
+model ServicoRealizado {
+  id        String   @id @default(uuid())
+  descricao String
+  tecnico   String?
+  createdAt DateTime @default(now())
+
+  ordemId String
+  ordem   OrdemServico @relation(fields: [ordemId], references: [id])
+}
+
+enum TipoEvento {
+  RECEBIMENTO
+  DIAGNOSTICO
+  MANUTENCAO_INTERNA
+  ENVIO_TERCEIRO
+  RETORNO_TERCEIRO
+  AGUARDANDO_PECA
+  FINALIZADO
+}
+
+enum Status {
+  RECEBIDO
+  EM_ANALISE
+  EM_MANUTENCAO
+  EM_TERCEIRO
+  AGUARDANDO_PECA
+  PRONTO
+  ENTREGUE
+}
