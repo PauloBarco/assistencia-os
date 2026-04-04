@@ -31,7 +31,18 @@ export async function POST(req: Request) {
     },
   });
 
-  return Response.json(os);
+    return Response.json(os);
+}
+export async function GET() {
+    const ordens = await prisma.ordemServico.findMany({
+      include: {
+        equipamento: true,},
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return Response.json(ordens);
 }
 
 export async function GET() {
