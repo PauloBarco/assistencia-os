@@ -23,6 +23,27 @@ export type UpdateStatusInput = {
   status: Status;
 };
 
+export type UpdateOsInput = {
+  numero: string;
+  origem: string;
+  descricao?: string;
+  tipo: string;
+  marca: string;
+  modelo: string;
+  serial?: string;
+  defeito: string;
+};
+
+export type CreateServicoInput = {
+  ordemId: string;
+  descricao: string;
+  tecnico?: string;
+};
+
+export type DeliverOsInput = {
+  observacao?: string;
+};
+
 export function validateCreateOsInput(payload: unknown): CreateOsInput | null {
   if (!isRecord(payload)) {
     return null;
@@ -90,5 +111,59 @@ export function validateUpdateStatusInput(payload: unknown): UpdateStatusInput |
   return {
     id: payload.id.trim(),
     status: status as Status,
+  };
+}
+
+export function validateUpdateOsInput(payload: unknown): UpdateOsInput | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  if (
+    !isNonEmptyString(payload.numero) ||
+    !isNonEmptyString(payload.origem) ||
+    !isNonEmptyString(payload.tipo) ||
+    !isNonEmptyString(payload.marca) ||
+    !isNonEmptyString(payload.modelo) ||
+    !isNonEmptyString(payload.defeito)
+  ) {
+    return null;
+  }
+
+  return {
+    numero: payload.numero.trim(),
+    origem: payload.origem.trim(),
+    descricao: optionalTrimmedString(payload.descricao),
+    tipo: payload.tipo.trim(),
+    marca: payload.marca.trim(),
+    modelo: payload.modelo.trim(),
+    serial: optionalTrimmedString(payload.serial),
+    defeito: payload.defeito.trim(),
+  };
+}
+
+export function validateCreateServicoInput(payload: unknown): CreateServicoInput | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  if (!isNonEmptyString(payload.ordemId) || !isNonEmptyString(payload.descricao)) {
+    return null;
+  }
+
+  return {
+    ordemId: payload.ordemId.trim(),
+    descricao: payload.descricao.trim(),
+    tecnico: optionalTrimmedString(payload.tecnico),
+  };
+}
+
+export function validateDeliverOsInput(payload: unknown): DeliverOsInput | null {
+  if (!isRecord(payload)) {
+    return null;
+  }
+
+  return {
+    observacao: optionalTrimmedString(payload.observacao),
   };
 }

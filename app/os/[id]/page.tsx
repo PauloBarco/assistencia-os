@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { AddEvento } from "@/components/AddEvento";
+import { DeleteOsButton } from "@/components/DeleteOsButton";
+import { DeleteServicoButton } from "@/components/DeleteServicoButton";
+import { EditOsForm } from "@/components/EditOsForm";
+import { MarkAsDeliveredForm } from "@/components/MarkAsDeliveredForm";
+import { AddServicoForm } from "@/components/AddServicoForm";
 import Link from "next/link";
 
 const STATUS_META = {
@@ -38,6 +43,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     include: {
       equipamento: true,
       eventos: {
+        orderBy: { createdAt: "desc" },
+      },
+      servicos: {
         orderBy: { createdAt: "desc" },
       },
     },
@@ -98,8 +106,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   <p className="mt-2 text-sm font-semibold text-slate-900">{formatDate(os.createdAt)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Eventos</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{os.eventos.length} registrados</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Registros</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{os.eventos.length + os.servicos.length} itens</p>
                 </div>
               </div>
             </div>
@@ -124,47 +132,97 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
 
         <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
+            <EditOsForm
+              ordemId={os.id}
+              initialValues={{
+                numero: os.numeroExterno,
+                origem: os.origem,
+                descricao: os.descricao,
+                tipo: os.equipamento?.tipo,
+                marca: os.equipamento?.marca,
+                modelo: os.equipamento?.modelo,
+                serial: os.equipamento?.serial,
+                defeito: os.equipamento?.defeito,
+              }}
+            />
+            {os.statusAtual !== "ENTREGUE" && (
+              <MarkAsDeliveredForm ordemId={os.id} />
+            )}
+            <AddServicoForm ordemId={os.id} />
             <AddEvento ordemId={os.id} />
+            <DeleteOsButton ordemId={os.id} numeroExterno={os.numeroExterno} />
           </div>
 
-          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <div className="mb-5">
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Historico</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">Linha do tempo da OS</h2>
+          <div className="space-y-6">
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+              <div className="mb-5">
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Servicos</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Intervencoes realizadas</h2>
+              </div>
+
+              <div className="space-y-4">
+                {os.servicos.length > 0 ? (
+                  os.servicos.map((servico) => (
+                    <div key={servico.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                            {servico.tecnico ? `Tecnico: ${servico.tecnico}` : "Tecnico nao informado"}
+                          </span>
+                          <span className="text-xs text-slate-400">{formatDate(servico.createdAt)}</span>
+                        </div>
+                        <DeleteServicoButton ordemId={os.id} servicoId={servico.id} />
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-slate-700">{servico.descricao}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-slate-500">
+                    Nenhum servico registrado ainda.
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-4">
-              {os.eventos.length > 0 ? (
-                os.eventos.map((e) => (
-                  <div
-                    key={e.id}
-                    className="flex items-start gap-4"
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className={`h-3 w-3 rounded-full ${EVENT_META[e.tipo].dot}`}></div>
-                      <div className="mt-2 min-h-12 w-px bg-slate-200 last:hidden"></div>
-                    </div>
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+              <div className="mb-5">
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Historico</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Linha do tempo da OS</h2>
+              </div>
 
-                    <div className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
-                          {EVENT_META[e.tipo].label}
-                        </span>
-
-                        <span className="text-xs text-slate-400">
-                          {formatDate(e.createdAt)}
-                        </span>
+              <div className="space-y-4">
+                {os.eventos.length > 0 ? (
+                  os.eventos.map((e) => (
+                    <div
+                      key={e.id}
+                      className="flex items-start gap-4"
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className={`h-3 w-3 rounded-full ${EVENT_META[e.tipo].dot}`}></div>
+                        <div className="mt-2 min-h-12 w-px bg-slate-200 last:hidden"></div>
                       </div>
 
-                      <p className="mt-3 text-sm leading-7 text-slate-700">{e.descricao}</p>
+                      <div className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
+                            {EVENT_META[e.tipo].label}
+                          </span>
+
+                          <span className="text-xs text-slate-400">
+                            {formatDate(e.createdAt)}
+                          </span>
+                        </div>
+
+                        <p className="mt-3 text-sm leading-7 text-slate-700">{e.descricao}</p>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-slate-500">
+                    Nenhum evento registrado ainda.
                   </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-slate-500">
-                  Nenhum evento registrado ainda.
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </section>
