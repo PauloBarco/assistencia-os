@@ -1,7 +1,9 @@
+import { recordAuditLog } from "@/lib/audit";
 import { Prisma } from "@prisma/client";
 
 import { jsonError, parseJsonBody } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
+import { requireRequestSession } from "@/lib/route-auth";
 import { validateCreateServicoInput } from "@/lib/validators";
 
 type RouteContext = {
@@ -9,6 +11,12 @@ type RouteContext = {
 };
 
 export async function POST(req: Request, context: RouteContext) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   const { id } = await context.params;
 
   if (!id?.trim()) {
@@ -29,6 +37,15 @@ export async function POST(req: Request, context: RouteContext) {
         descricao: input.descricao,
         tecnico: input.tecnico,
       },
+    });
+
+    await recordAuditLog({
+      ordemId: input.ordemId,
+      entityType: "servico",
+      entityId: servico.id,
+      action: "CREATE",
+      actor: auth.actor,
+      details: "Servico realizado registrado",
     });
 
     return Response.json(servico, { status: 201 });

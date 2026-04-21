@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authenticatedRequest } from "./auth-helpers";
 
 const prismaMock = {
   servicoRealizado: {
@@ -24,7 +25,7 @@ describe("DELETE /api/os/[id]/servicos/[servicoId]", () => {
 
     const { DELETE } = await import("@/app/api/os/[id]/servicos/[servicoId]/route");
 
-    const response = await DELETE(new Request("http://localhost/api/os/os-1/servicos/srv-1"), {
+    const response = await DELETE(authenticatedRequest("http://localhost/api/os/os-1/servicos/srv-1"), {
       params: Promise.resolve({ id: "os-1", servicoId: "srv-1" }),
     });
 
@@ -45,7 +46,7 @@ describe("DELETE /api/os/[id]/servicos/[servicoId]", () => {
 
     const { DELETE } = await import("@/app/api/os/[id]/servicos/[servicoId]/route");
 
-    const response = await DELETE(new Request("http://localhost/api/os/os-1/servicos/srv-1"), {
+    const response = await DELETE(authenticatedRequest("http://localhost/api/os/os-1/servicos/srv-1"), {
       params: Promise.resolve({ id: "os-1", servicoId: "srv-1" }),
     });
 

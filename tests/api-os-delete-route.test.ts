@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authenticatedRequest } from "./auth-helpers";
 
 const prismaMock = {
   $transaction: vi.fn(),
@@ -16,7 +17,7 @@ describe("DELETE /api/os/[id]", () => {
   it("returns 400 when id is empty", async () => {
     const { DELETE } = await import("@/app/api/os/[id]/route");
 
-    const response = await DELETE(new Request("http://localhost/api/os/"), {
+    const response = await DELETE(authenticatedRequest("http://localhost/api/os/"), {
       params: Promise.resolve({ id: "" }),
     });
 
@@ -38,7 +39,7 @@ describe("DELETE /api/os/[id]", () => {
 
     const { DELETE } = await import("@/app/api/os/[id]/route");
 
-    const response = await DELETE(new Request("http://localhost/api/os/os-1"), {
+    const response = await DELETE(authenticatedRequest("http://localhost/api/os/os-1"), {
       params: Promise.resolve({ id: "os-1" }),
     });
 

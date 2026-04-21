@@ -22,6 +22,17 @@ model OrdemServico {
   servicos    ServicoRealizado[]
 }
 
+model AuditLog {
+  id         String   @id @default(uuid())
+  ordemId    String?
+  entityType String
+  entityId   String
+  action     String
+  actor      String?
+  details    String
+  createdAt  DateTime @default(now())
+}
+
 model Equipamento {
   id      String @id @default(uuid())
   tipo    String

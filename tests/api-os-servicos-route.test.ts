@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authenticatedRequest } from "./auth-helpers";
 
 const prismaMock = {
   servicoRealizado: {
@@ -19,7 +20,7 @@ describe("POST /api/os/[id]/servicos", () => {
     const { POST } = await import("@/app/api/os/[id]/servicos/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os/os-1/servicos", {
+      authenticatedRequest("http://localhost/api/os/os-1/servicos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ordemId: "os-1", descricao: "" }),
@@ -44,7 +45,7 @@ describe("POST /api/os/[id]/servicos", () => {
     const { POST } = await import("@/app/api/os/[id]/servicos/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os/os-1/servicos", {
+      authenticatedRequest("http://localhost/api/os/os-1/servicos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

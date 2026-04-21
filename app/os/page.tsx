@@ -4,16 +4,8 @@ import type { Prisma, Status } from "@prisma/client";
 import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
-
-const STATUS_META = {
-  RECEBIDO: { label: "Recebido", tone: "bg-slate-100 text-slate-700 border-slate-200" },
-  EM_ANALISE: { label: "Em analise", tone: "bg-amber-100 text-amber-800 border-amber-200" },
-  EM_MANUTENCAO: { label: "Em manutencao", tone: "bg-sky-100 text-sky-800 border-sky-200" },
-  EM_TERCEIRO: { label: "Em terceiro", tone: "bg-violet-100 text-violet-800 border-violet-200" },
-  AGUARDANDO_PECA: { label: "Aguardando peca", tone: "bg-orange-100 text-orange-800 border-orange-200" },
-  PRONTO: { label: "Pronto", tone: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  ENTREGUE: { label: "Entregue", tone: "bg-zinc-200 text-zinc-700 border-zinc-300" },
-} as const;
+import { formatDateTime } from "@/lib/format";
+import { STATUS_META } from "@/lib/status-meta";
 
 type SearchParams = Promise<{
   page?: string;
@@ -42,13 +34,6 @@ function buildPageHref(page: number, query: string, status: string) {
 
 function isStatus(value: string): value is Status {
   return value in STATUS_META;
-}
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
 }
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
@@ -213,7 +198,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                   </div>
 
                   <div className="shrink-0 text-sm text-slate-500">
-                    Criada em {formatDate(os.createdAt)}
+                    Criada em {formatDateTime(os.createdAt)}
                   </div>
                 </div>
               </Link>

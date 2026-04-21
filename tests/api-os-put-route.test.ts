@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authenticatedRequest } from "./auth-helpers";
 
 const prismaMock = {
   $transaction: vi.fn(),
@@ -17,7 +18,7 @@ describe("PUT /api/os/[id]", () => {
     const { PUT } = await import("@/app/api/os/[id]/route");
 
     const response = await PUT(
-      new Request("http://localhost/api/os/os-1", {
+      authenticatedRequest("http://localhost/api/os/os-1", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ numero: "", origem: "Balcao" }),
@@ -46,7 +47,7 @@ describe("PUT /api/os/[id]", () => {
     const { PUT } = await import("@/app/api/os/[id]/route");
 
     const response = await PUT(
-      new Request("http://localhost/api/os/os-1", {
+      authenticatedRequest("http://localhost/api/os/os-1", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

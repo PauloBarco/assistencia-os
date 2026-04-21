@@ -1,16 +1,8 @@
 import Link from "next/link";
 
+import { formatDateTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
-
-const STATUS_META = {
-  RECEBIDO: { label: "Recebidas", tone: "bg-slate-100 text-slate-700 border-slate-200" },
-  EM_ANALISE: { label: "Em analise", tone: "bg-amber-100 text-amber-800 border-amber-200" },
-  EM_MANUTENCAO: { label: "Em manutencao", tone: "bg-sky-100 text-sky-800 border-sky-200" },
-  EM_TERCEIRO: { label: "Em terceiro", tone: "bg-violet-100 text-violet-800 border-violet-200" },
-  AGUARDANDO_PECA: { label: "Aguardando peca", tone: "bg-orange-100 text-orange-800 border-orange-200" },
-  PRONTO: { label: "Prontas", tone: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  ENTREGUE: { label: "Entregues", tone: "bg-zinc-200 text-zinc-700 border-zinc-300" },
-} as const;
+import { STATUS_META } from "@/lib/status-meta";
 
 const QUICK_ACTIONS = [
   {
@@ -32,13 +24,6 @@ const QUICK_ACTIONS = [
     tone: "bg-white text-slate-900 border border-slate-200",
   },
 ] as const;
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
-}
 
 export default async function Home() {
   const [totalOrdens, ordensRecentes, statusGroups] = await Promise.all([
@@ -179,7 +164,7 @@ export default async function Home() {
                         <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_META[ordem.statusAtual].tone}`}>
                           {STATUS_META[ordem.statusAtual].label}
                         </span>
-                        <p className="mt-2 text-xs text-slate-500">{formatDate(ordem.createdAt)}</p>
+                        <p className="mt-2 text-xs text-slate-500">{formatDateTime(ordem.createdAt)}</p>
                       </div>
                     </div>
                   </Link>

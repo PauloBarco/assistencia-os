@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authenticatedRequest } from "./auth-helpers";
 
 const prismaMock = {
   ordemServico: {
@@ -20,7 +21,7 @@ describe("POST /api/os/update-status", () => {
     const { POST } = await import("@/app/api/os/update-status/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os/update-status", {
+      authenticatedRequest("http://localhost/api/os/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -45,7 +46,7 @@ describe("POST /api/os/update-status", () => {
     const { POST } = await import("@/app/api/os/update-status/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os/update-status", {
+      authenticatedRequest("http://localhost/api/os/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,7 +77,7 @@ describe("POST /api/os/update-status", () => {
     const { POST } = await import("@/app/api/os/update-status/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os/update-status", {
+      authenticatedRequest("http://localhost/api/os/update-status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

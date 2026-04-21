@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authenticatedRequest } from "./auth-helpers";
 
 const prismaMock = {
   ordemServico: {
@@ -19,7 +20,7 @@ describe("POST /api/os", () => {
     const { POST } = await import("@/app/api/os/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os", {
+      authenticatedRequest("http://localhost/api/os", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -32,6 +33,27 @@ describe("POST /api/os", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({
       error: "Dados invalidos para criar a ordem de servico",
+    });
+  });
+
+  it("returns 401 when session is missing", async () => {
+    const { POST } = await import("@/app/api/os/route");
+
+    const response = await POST(
+      new Request("http://localhost/api/os", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numero: "2026-401",
+          origem: "Balcao",
+          descricao: "Sem energia",
+        }),
+      })
+    );
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({
+      error: "Nao autenticado",
     });
   });
 
@@ -60,7 +82,7 @@ describe("POST /api/os", () => {
     const { POST } = await import("@/app/api/os/route");
 
     const response = await POST(
-      new Request("http://localhost/api/os", {
+      authenticatedRequest("http://localhost/api/os", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,9 +1,17 @@
+import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { jsonError, parseJsonBody } from "@/lib/http";
+import { requireRequestSession } from "@/lib/route-auth";
 import { validateCreateEventoInput } from "@/lib/validators";
 import { Prisma, Status } from "@prisma/client";
 
 export async function POST(req: Request) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   try {
     const body = await parseJsonBody(req);
     const input = validateCreateEventoInput(body);
@@ -51,6 +59,15 @@ export async function POST(req: Request) {
         }
 
         return createdEvento;
+    });
+
+    await recordAuditLog({
+      ordemId: input.ordemId,
+      entityType: "evento",
+      entityId: evento.id,
+      action: "CREATE",
+      actor: auth.actor,
+      details: `Evento ${input.tipo} registrado`,
     });
 
     return Response.json(evento, { status: 201 });

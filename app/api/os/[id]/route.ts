@@ -1,8 +1,10 @@
 import { Prisma } from "@prisma/client";
 
+import { recordAuditLog } from "@/lib/audit";
 import { jsonError } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
 import { parseJsonBody } from "@/lib/http";
+import { requireRequestSession } from "@/lib/route-auth";
 import { validateUpdateOsInput } from "@/lib/validators";
 
 type RouteContext = {
@@ -10,6 +12,12 @@ type RouteContext = {
 };
 
 export async function PUT(req: Request, context: RouteContext) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   const { id } = await context.params;
 
   if (!id?.trim()) {
@@ -48,6 +56,15 @@ export async function PUT(req: Request, context: RouteContext) {
       return updatedOs;
     });
 
+    await recordAuditLog({
+      ordemId: id,
+      entityType: "ordem_servico",
+      entityId: id,
+      action: "UPDATE",
+      actor: auth.actor,
+      details: `OS ${os.numeroExterno} atualizada`,
+    });
+
     return Response.json(os);
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_JSON") {
@@ -63,7 +80,13 @@ export async function PUT(req: Request, context: RouteContext) {
   }
 }
 
-export async function DELETE(_: Request, context: RouteContext) {
+export async function DELETE(req: Request, context: RouteContext) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   const { id } = await context.params;
 
   if (!id?.trim()) {
@@ -87,6 +110,15 @@ export async function DELETE(_: Request, context: RouteContext) {
       await tx.ordemServico.delete({
         where: { id },
       });
+    });
+
+    await recordAuditLog({
+      ordemId: id,
+      entityType: "ordem_servico",
+      entityId: id,
+      action: "DELETE",
+      actor: auth.actor,
+      details: "OS excluida com seus registros relacionados",
     });
 
     return Response.json({ ok: true });

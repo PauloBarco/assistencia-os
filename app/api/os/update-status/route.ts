@@ -1,9 +1,17 @@
+import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { jsonError, parseJsonBody } from "@/lib/http";
+import { requireRequestSession } from "@/lib/route-auth";
 import { validateUpdateStatusInput } from "@/lib/validators";
 import { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   try {
     const body = await parseJsonBody(req);
     const input = validateUpdateStatusInput(body);
@@ -17,6 +25,15 @@ export async function POST(req: Request) {
       data: {
         statusAtual: input.status,
       },
+    });
+
+    await recordAuditLog({
+      ordemId: input.id,
+      entityType: "ordem_servico",
+      entityId: input.id,
+      action: "STATUS_UPDATE",
+      actor: auth.actor,
+      details: `Status alterado para ${input.status}`,
     });
 
     return Response.json({ ok: true });

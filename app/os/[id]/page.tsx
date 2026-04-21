@@ -3,37 +3,15 @@ import { AddEvento } from "@/components/AddEvento";
 import { DeleteOsButton } from "@/components/DeleteOsButton";
 import { DeleteServicoButton } from "@/components/DeleteServicoButton";
 import { EditOsForm } from "@/components/EditOsForm";
+import { EventActions } from "@/components/EventActions";
 import { MarkAsDeliveredForm } from "@/components/MarkAsDeliveredForm";
 import { AddServicoForm } from "@/components/AddServicoForm";
+import { ServiceActions } from "@/components/ServiceActions";
+import { getAuditActionMeta } from "@/lib/audit-meta";
+import { EVENT_META } from "@/lib/event-meta";
+import { formatDateTime } from "@/lib/format";
+import { STATUS_META } from "@/lib/status-meta";
 import Link from "next/link";
-
-const STATUS_META = {
-  RECEBIDO: { label: "Recebido", tone: "bg-slate-100 text-slate-700 border-slate-200" },
-  EM_ANALISE: { label: "Em analise", tone: "bg-amber-100 text-amber-800 border-amber-200" },
-  EM_MANUTENCAO: { label: "Em manutencao", tone: "bg-sky-100 text-sky-800 border-sky-200" },
-  EM_TERCEIRO: { label: "Em terceiro", tone: "bg-violet-100 text-violet-800 border-violet-200" },
-  AGUARDANDO_PECA: { label: "Aguardando peca", tone: "bg-orange-100 text-orange-800 border-orange-200" },
-  PRONTO: { label: "Pronto", tone: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-  ENTREGUE: { label: "Entregue", tone: "bg-zinc-200 text-zinc-700 border-zinc-300" },
-} as const;
-
-const EVENT_META = {
-  RECEBIMENTO: { label: "Recebimento", dot: "bg-slate-500" },
-  DIAGNOSTICO: { label: "Diagnostico", dot: "bg-amber-500" },
-  MANUTENCAO_INTERNA: { label: "Manutencao interna", dot: "bg-sky-500" },
-  ENVIO_TERCEIRO: { label: "Envio terceiro", dot: "bg-violet-500" },
-  RETORNO_TERCEIRO: { label: "Retorno terceiro", dot: "bg-fuchsia-500" },
-  AGUARDANDO_PECA: { label: "Aguardando peca", dot: "bg-orange-500" },
-  FINALIZADO: { label: "Finalizado", dot: "bg-emerald-500" },
-  ATUALIZACAO: { label: "Atualizacao", dot: "bg-slate-400" },
-} as const;
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(date);
-}
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -49,6 +27,12 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         orderBy: { createdAt: "desc" },
       },
     },
+  });
+
+  const auditLogs = await prisma.auditLog.findMany({
+    where: { ordemId: id },
+    orderBy: { createdAt: "desc" },
+    take: 10,
   });
 
   if (!os) {
@@ -103,7 +87,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Criada em</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{formatDate(os.createdAt)}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{formatDateTime(os.createdAt)}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Registros</p>
@@ -131,7 +115,22 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-6">
+            <div className="space-y-6">
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xl font-semibold text-slate-950">Resumo para entrega</h3>
+                  <p className="mt-2 text-sm text-slate-600">Abra uma versao limpa da OS para imprimir ou salvar em PDF.</p>
+                </div>
+                <Link
+                  href={`/os/${os.id}/imprimir`}
+                  target="_blank"
+                  className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                >
+                  Abrir impressao
+                </Link>
+              </div>
+            </div>
             <EditOsForm
               ordemId={os.id}
               initialValues={{
@@ -169,11 +168,17 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                           <span className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm">
                             {servico.tecnico ? `Tecnico: ${servico.tecnico}` : "Tecnico nao informado"}
                           </span>
-                          <span className="text-xs text-slate-400">{formatDate(servico.createdAt)}</span>
+                          <span className="text-xs text-slate-400">{formatDateTime(servico.createdAt)}</span>
                         </div>
                         <DeleteServicoButton ordemId={os.id} servicoId={servico.id} />
                       </div>
                       <p className="mt-3 text-sm leading-7 text-slate-700">{servico.descricao}</p>
+                      <ServiceActions
+                        ordemId={os.id}
+                        servicoId={servico.id}
+                        initialDescription={servico.descricao}
+                        initialTecnico={servico.tecnico}
+                      />
                     </div>
                   ))
                 ) : (
@@ -209,17 +214,52 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                           </span>
 
                           <span className="text-xs text-slate-400">
-                            {formatDate(e.createdAt)}
+                            {formatDateTime(e.createdAt)}
                           </span>
                         </div>
 
                         <p className="mt-3 text-sm leading-7 text-slate-700">{e.descricao}</p>
+                        <EventActions eventId={e.id} initialDescription={e.descricao} />
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-slate-500">
                     Nenhum evento registrado ainda.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+              <div className="mb-5">
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Auditoria</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Acoes recentes</h2>
+              </div>
+              <div className="space-y-3">
+                {auditLogs.length > 0 ? (
+                  auditLogs.map((log) => {
+                    const actionMeta = getAuditActionMeta(log.action);
+
+                    return (
+                      <div key={log.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${actionMeta.tone}`}>
+                              {actionMeta.label}
+                            </span>
+                            <span className="text-xs uppercase tracking-wide text-slate-400">{log.entityType.replaceAll("_", " ")}</span>
+                          </div>
+                          <span className="text-xs text-slate-400">{formatDateTime(log.createdAt)}</span>
+                        </div>
+                        <p className="mt-2 text-sm text-slate-700">{log.details}</p>
+                        <p className="mt-1 text-xs text-slate-500">Responsavel: {log.actor || "Sistema"}</p>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-slate-500">
+                    Nenhuma acao auditada ainda.
                   </div>
                 )}
               </div>

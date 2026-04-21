@@ -1,9 +1,17 @@
+import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { jsonError, parseJsonBody } from "@/lib/http";
+import { requireRequestSession } from "@/lib/route-auth";
 import { validateCreateOsInput } from "@/lib/validators";
 import { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   try {
     const body = await parseJsonBody(req);
     const input = validateCreateOsInput(body);
@@ -40,6 +48,15 @@ export async function POST(req: Request) {
       },
     });
 
+    await recordAuditLog({
+      ordemId: os.id,
+      entityType: "ordem_servico",
+      entityId: os.id,
+      action: "CREATE",
+      actor: auth.actor,
+      details: `OS ${os.numeroExterno} criada`,
+    });
+
     return Response.json(os, { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_JSON") {
@@ -55,7 +72,13 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = requireRequestSession(req);
+
+  if ("response" in auth) {
+    return auth.response;
+  }
+
   try {
     const ordens = await prisma.ordemServico.findMany({
       select: {

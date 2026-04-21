@@ -40,8 +40,17 @@ export type CreateServicoInput = {
   tecnico?: string;
 };
 
+export type UpdateServicoInput = {
+  descricao: string;
+  tecnico?: string;
+};
+
 export type DeliverOsInput = {
   observacao?: string;
+};
+
+export type UpdateEventoInput = {
+  descricao: string;
 };
 
 export function validateCreateOsInput(payload: unknown): CreateOsInput | null {
@@ -158,6 +167,17 @@ export function validateCreateServicoInput(payload: unknown): CreateServicoInput
   };
 }
 
+export function validateUpdateServicoInput(payload: unknown): UpdateServicoInput | null {
+  if (!isRecord(payload) || !isNonEmptyString(payload.descricao)) {
+    return null;
+  }
+
+  return {
+    descricao: payload.descricao.trim(),
+    tecnico: optionalTrimmedString(payload.tecnico),
+  };
+}
+
 export function validateDeliverOsInput(payload: unknown): DeliverOsInput | null {
   if (!isRecord(payload)) {
     return null;
@@ -165,5 +185,15 @@ export function validateDeliverOsInput(payload: unknown): DeliverOsInput | null 
 
   return {
     observacao: optionalTrimmedString(payload.observacao),
+  };
+}
+
+export function validateUpdateEventoInput(payload: unknown): UpdateEventoInput | null {
+  if (!isRecord(payload) || !isNonEmptyString(payload.descricao)) {
+    return null;
+  }
+
+  return {
+    descricao: payload.descricao.trim(),
   };
 }
