@@ -1,39 +1,69 @@
 import { prisma } from "@/lib/prisma";
+import { jsonError, parseJsonBody } from "@/lib/http";
+import { validateCreateEventoInput } from "@/lib/validators";
+import { Prisma, Status } from "@prisma/client";
 
 export async function POST(req: Request) {
-    const body = await req.json();
+  try {
+    const body = await parseJsonBody(req);
+    const input = validateCreateEventoInput(body);
 
-    // Mapeamento de status
-    let novoStatus = undefined
-
-    if (body.tipo === "DIAGNOSTICO") {
-        novoStatus = "EM_ANALISE";
+    if (!input) {
+      return jsonError("Campos obrigatorios invalidos: ordemId, tipo e descricao", 400);
     }
 
-    if (body.tipo === "MANUTENÇAO") {
-        novoStatus = "EM_MANUTENÇÃO";
+    let novoStatus: Status | undefined;
+
+    if (input.tipo === "DIAGNOSTICO") {
+      novoStatus = "EM_ANALISE";
     }
 
-    if (body.tipo === "FINALIZADO"){
-        novoStatus = "FINALIZADO";
+    if (input.tipo === "MANUTENCAO_INTERNA") {
+      novoStatus = "EM_MANUTENCAO";
     }
 
-    const evento = await prisma.evento.create({
-        data: {
-            tipo: body.tipo,
-            descricao: body.descricao,
-            ordemId: body.ordemId
-        },
+    if (input.tipo === "ENVIO_TERCEIRO") {
+      novoStatus = "EM_TERCEIRO";
+    }
+
+    if (input.tipo === "AGUARDANDO_PECA") {
+      novoStatus = "AGUARDANDO_PECA";
+    }
+
+    if (input.tipo === "FINALIZADO") {
+      novoStatus = "PRONTO";
+    }
+
+    const evento = await prisma.$transaction(async (tx) => {
+        const createdEvento = await tx.evento.create({
+            data: {
+                tipo: input.tipo,
+                descricao: input.descricao,
+                ordemId: input.ordemId
+            },
+        });
+
+        if (novoStatus) {
+            await tx.ordemServico.update({
+                where: { id: input.ordemId },
+                data: { statusAtual: novoStatus }
+            });
+        }
+
+        return createdEvento;
     });
 
-    // Atualiza o status da ordem de serviço
-    if (novoStatus) {
-        await prisma.ordemServico.update({
-            where: { id: body.ordemId },
-            data: { status: novoStatus }
-        });
+    return Response.json(evento, { status: 201 });
+  } catch (error) {
+    if (error instanceof Error && error.message === "INVALID_JSON") {
+      return jsonError("Corpo JSON invalido", 400);
     }
 
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      return jsonError("Ordem de servico nao encontrada", 404);
+    }
 
-    return Response.json(evento);
+    console.error("Erro ao criar evento:", error);
+    return jsonError("Erro interno do servidor", 500);
+  }
 }

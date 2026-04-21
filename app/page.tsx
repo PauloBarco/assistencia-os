@@ -1,65 +1,198 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+import { prisma } from "@/lib/prisma";
+
+const STATUS_META = {
+  RECEBIDO: { label: "Recebidas", tone: "bg-slate-100 text-slate-700 border-slate-200" },
+  EM_ANALISE: { label: "Em analise", tone: "bg-amber-100 text-amber-800 border-amber-200" },
+  EM_MANUTENCAO: { label: "Em manutencao", tone: "bg-sky-100 text-sky-800 border-sky-200" },
+  EM_TERCEIRO: { label: "Em terceiro", tone: "bg-violet-100 text-violet-800 border-violet-200" },
+  AGUARDANDO_PECA: { label: "Aguardando peca", tone: "bg-orange-100 text-orange-800 border-orange-200" },
+  PRONTO: { label: "Prontas", tone: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+  ENTREGUE: { label: "Entregues", tone: "bg-zinc-200 text-zinc-700 border-zinc-300" },
+} as const;
+
+const QUICK_ACTIONS = [
+  {
+    title: "Cadastrar nova OS",
+    description: "Abra uma ordem com dados do equipamento e defeito inicial.",
+    href: "/os/nova",
+    tone: "bg-sky-600 text-white",
+  },
+  {
+    title: "Acompanhar ordens",
+    description: "Veja a fila completa com paginação e detalhes de cada equipamento.",
+    href: "/os",
+    tone: "bg-slate-950 text-white",
+  },
+  {
+    title: "Abrir kanban",
+    description: "Movimente as ordens por etapa e enxergue gargalos rapidamente.",
+    href: "/kanban",
+    tone: "bg-white text-slate-900 border border-slate-200",
+  },
+] as const;
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
+}
+
+export default async function Home() {
+  const [totalOrdens, ordensRecentes, statusGroups] = await Promise.all([
+    prisma.ordemServico.count(),
+    prisma.ordemServico.findMany({
+      take: 6,
+      orderBy: { createdAt: "desc" },
+      include: {
+        equipamento: true,
+      },
+    }),
+    prisma.ordemServico.groupBy({
+      by: ["statusAtual"],
+      _count: {
+        statusAtual: true,
+      },
+    }),
+  ]);
+
+  const countsByStatus = Object.fromEntries(
+    statusGroups.map((group) => [group.statusAtual, group._count.statusAtual])
+  ) as Partial<Record<keyof typeof STATUS_META, number>>;
+
+  const emAndamento = totalOrdens - (countsByStatus.ENTREGUE ?? 0);
+  const prontosParaEntrega = countsByStatus.PRONTO ?? 0;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_48%,#ffffff_100%)] px-6 py-10 text-slate-900">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <section className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 shadow-[0_25px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="grid gap-8 px-8 py-10 lg:grid-cols-[1.5fr_0.9fr] lg:px-10">
+            <div className="space-y-6">
+              <span className="inline-flex rounded-full bg-sky-100 px-4 py-1 text-sm font-medium text-sky-800">
+                Painel da assistencia
+              </span>
+
+              <div className="space-y-3">
+                <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 md:text-5xl">
+                  Tudo o que a bancada precisa para acompanhar ordens sem perder contexto.
+                </h1>
+                <p className="max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+                  Consulte o volume atual, veja o que esta pronto para entrega e entre direto na lista ou no kanban.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                {QUICK_ACTIONS.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className={`rounded-2xl px-5 py-4 transition hover:-translate-y-0.5 hover:shadow-lg ${action.tone}`}
+                  >
+                    <p className="text-base font-semibold">{action.title}</p>
+                    <p className="mt-1 text-sm opacity-80">{action.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
+              <article className="rounded-3xl bg-slate-950 px-6 py-5 text-white shadow-lg">
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-300">Total</p>
+                <p className="mt-3 text-4xl font-semibold">{totalOrdens}</p>
+                <p className="mt-2 text-sm text-slate-300">ordens cadastradas no sistema</p>
+              </article>
+
+              <article className="rounded-3xl bg-amber-100 px-6 py-5 text-amber-900 shadow-sm">
+                <p className="text-sm uppercase tracking-[0.2em] text-amber-700">Em andamento</p>
+                <p className="mt-3 text-4xl font-semibold">{emAndamento}</p>
+                <p className="mt-2 text-sm text-amber-800">ordens ainda em fluxo tecnico</p>
+              </article>
+
+              <article className="rounded-3xl bg-emerald-100 px-6 py-5 text-emerald-900 shadow-sm">
+                <p className="text-sm uppercase tracking-[0.2em] text-emerald-700">Prontas</p>
+                <p className="mt-3 text-4xl font-semibold">{prontosParaEntrega}</p>
+                <p className="mt-2 text-sm text-emerald-800">aguardando retirada ou entrega</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Volume por etapa</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Mapa rapido da operacao</h2>
+              </div>
+              <Link href="/kanban" className="text-sm font-medium text-sky-700 hover:text-sky-900">
+                Abrir kanban
+              </Link>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              {Object.entries(STATUS_META).map(([status, meta]) => (
+                <div
+                  key={status}
+                  className={`rounded-2xl border px-4 py-4 ${meta.tone}`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-sm font-medium uppercase tracking-wide">{meta.label}</p>
+                    <span className="text-2xl font-semibold">{countsByStatus[status as keyof typeof STATUS_META] ?? 0}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Ultimas entradas</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">Ordens recentes</h2>
+              </div>
+              <Link href="/os" className="text-sm font-medium text-sky-700 hover:text-sky-900">
+                Ver todas
+              </Link>
+            </div>
+
+            <div className="space-y-3">
+              {ordensRecentes.length > 0 ? (
+                ordensRecentes.map((ordem) => (
+                  <Link
+                    key={ordem.id}
+                    href={`/os/${ordem.id}`}
+                    className="block rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 transition hover:-translate-y-0.5 hover:border-sky-200 hover:bg-white hover:shadow-md"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-base font-semibold text-slate-950">OS {ordem.numeroExterno}</p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {ordem.equipamento?.marca} {ordem.equipamento?.modelo}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-500">Origem: {ordem.origem}</p>
+                      </div>
+
+                      <div className="text-right">
+                        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_META[ordem.statusAtual].tone}`}>
+                          {STATUS_META[ordem.statusAtual].label}
+                        </span>
+                        <p className="mt-2 text-xs text-slate-500">{formatDate(ordem.createdAt)}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-slate-500">
+                  Nenhuma ordem cadastrada ainda.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
   );
 }
