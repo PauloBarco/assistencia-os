@@ -26,6 +26,11 @@ export default async function RootLayout({
             </div>
             {session ? (
               <div className="flex items-center gap-3">
+                {session.isAdmin && (
+                  <a href="/usuarios" className="text-sm text-blue-600 hover:underline">
+                    Usuarios
+                  </a>
+                )}
                 <span className="text-sm text-slate-500">{session.username}</span>
                 <LogoutButton />
               </div>

@@ -85,3 +85,13 @@ enum Status {
   PRONTO
   ENTREGUE
 }
+
+model Usuario {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  nome      String
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

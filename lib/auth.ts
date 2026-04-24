@@ -3,11 +3,14 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
+import { prisma } from "./prisma";
+
 const AUTH_COOKIE_NAME = "assistencia_session";
 const SESSION_DURATION_SECONDS = 60 * 60 * 12;
 
 export type SessionPayload = {
   username: string;
+  isAdmin: boolean;
   exp: number;
 };
 
@@ -23,6 +26,38 @@ function getRequiredEnv(name: string) {
 
 function getSessionSecret() {
   return getRequiredEnv("SESSION_SECRET");
+}
+
+/**
+ * Busca usuário no banco pelo username e verifica a senha
+ */
+export async function authenticateUser(username: string, password: string) {
+  const user = await prisma.usuario.findUnique({
+    where: { username },
+    select: { id: true, username: true, password: true, nome: true, isAdmin: true },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  // Verificar senha hashada ou senha plana (para compatibilidade com dados antigos)
+  const isValid = user.password === password || user.password === `plain:${password}`;
+  if (!isValid) {
+    return null;
+  }
+
+  return { username: user.username, nome: user.nome, isAdmin: user.isAdmin };
+}
+
+/**
+ * Busca usuário pelo ID para verificar sessão
+ */
+export async function getUserByUsername(username: string) {
+  return prisma.usuario.findUnique({
+    where: { username },
+    select: { id: true, username: true, nome: true, isAdmin: true },
+  });
 }
 
 export function getConfiguredUsername() {
@@ -72,10 +107,11 @@ function parseCookieHeader(cookieHeader?: string | null) {
   );
 }
 
-export function createSessionToken(username: string) {
+export function createSessionToken(username: string, isAdmin: boolean = false) {
   const payload = base64UrlEncode(
     JSON.stringify({
       username,
+      isAdmin,
       exp: Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS,
     } satisfies SessionPayload)
   );
@@ -125,9 +161,9 @@ export async function getSessionFromCookies() {
   return verifySessionToken(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 }
 
-export async function setSessionCookie(username: string) {
+export async function setSessionCookie(username: string, isAdmin: boolean = false) {
   const cookieStore = await cookies();
-  cookieStore.set(AUTH_COOKIE_NAME, createSessionToken(username), {
+  cookieStore.set(AUTH_COOKIE_NAME, createSessionToken(username, isAdmin), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
