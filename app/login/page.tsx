@@ -32,11 +32,6 @@ export default async function LoginPage() {
               Usuario padrao atual: <span className="font-semibold text-slate-900">{getConfiguredUsername()}</span>
             </p>
           </div>
-          {isUsingPlaceholderAuthConfig() && (
-            <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              Atualize `APP_ADMIN_PASSWORD` e `SESSION_SECRET` no `.env` antes de colocar este acesso em uso real.
-            </div>
-          )}
           <LoginForm defaultUsername={getConfiguredUsername()} />
         </div>
       </div>

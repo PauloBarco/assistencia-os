@@ -11,6 +11,7 @@ import {
 import { Equipamento, Evento, OrdemServico, Status } from "@prisma/client";
 
 import { STATUS_COLUMNS, STATUS_META } from "@/lib/status-meta";
+import { LoadingCard } from "@/components/Loading";
 
 type OrdemComIncludes = OrdemServico & {
   equipamento: Equipamento | null;
@@ -146,13 +147,13 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_46%,#ffffff_100%)] px-6 py-10 text-slate-900">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6">
-        <section className="rounded-[2rem] border border-white/70 bg-white/85 p-6 shadow-[0_25px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_46%,#ffffff_100%)] px-4 py-6 text-slate-900 sm:px-6 sm:py-10">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 sm:gap-6">
+        <section className="rounded-[2rem] border border-white/70 bg-white/85 p-4 sm:p-6 shadow-[0_25px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="space-y-2">
               <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Kanban operacional</p>
-              <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
                 Fluxo visual das ordens
               </h1>
               <p className="text-sm text-slate-600">
@@ -161,10 +162,10 @@ export default function Page() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Link
                 href="/os"
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:py-3"
               >
                 Ver lista
               </Link>
@@ -240,11 +241,11 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
             <button
               type="button"
               onClick={() => setSelectedStatus("TODOS")}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`rounded-full px-3 py-1.5 text-xs font-semibold transition sm:px-4 sm:py-2 sm:text-sm ${
                 selectedStatus === "TODOS"
                   ? "bg-slate-950 text-white"
                   : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -257,7 +258,7 @@ export default function Page() {
                 key={status}
                 type="button"
                 onClick={() => setSelectedStatus(status)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition sm:px-4 sm:py-2 sm:text-sm ${
                   selectedStatus === status
                     ? `${tone}`
                     : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
@@ -276,9 +277,11 @@ export default function Page() {
         )}
 
         {loading && (
-          <p className="text-sm text-slate-500">
-            Carregando ordens...
-          </p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <LoadingCard key={i} />
+            ))}
+          </div>
         )}
 
         <DragDropContext onDragEnd={onDragEnd}>

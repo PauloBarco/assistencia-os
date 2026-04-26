@@ -23,10 +23,35 @@ const QUICK_ACTIONS = [
     href: "/kanban",
     tone: "bg-white text-slate-900 border border-slate-200",
   },
+  {
+    title: "Ver relatorios",
+    description: "Analise o desempenho com métricas por periodo.",
+    href: "/relatorios",
+    tone: "bg-emerald-600 text-white",
+  },
 ] as const;
 
+function getDateRange(monthOffset: number) {
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const startOfMonth = new Date(target.getFullYear(), target.getMonth(), 1);
+  const endOfMonth = new Date(target.getFullYear(), target.getMonth() + 1, 0);
+  return { start: startOfMonth, end: endOfMonth };
+}
+
 export default async function Home() {
-  const [totalOrdens, ordensRecentes, statusGroups] = await Promise.all([
+  const currentMonth = getDateRange(0);
+  const lastMonth = getDateRange(-1);
+
+  const [
+    totalOrdens,
+    ordensRecentes,
+    statusGroups,
+    currentMonthOrders,
+    lastMonthOrders,
+    deliveredThisMonth,
+    deliveredLastMonth,
+  ] = await Promise.all([
     prisma.ordemServico.count(),
     prisma.ordemServico.findMany({
       take: 6,
@@ -41,6 +66,28 @@ export default async function Home() {
         statusAtual: true,
       },
     }),
+    prisma.ordemServico.count({
+      where: {
+        createdAt: { gte: currentMonth.start, lte: currentMonth.end },
+      },
+    }),
+    prisma.ordemServico.count({
+      where: {
+        createdAt: { gte: lastMonth.start, lte: lastMonth.end },
+      },
+    }),
+    prisma.ordemServico.count({
+      where: {
+        statusAtual: "ENTREGUE",
+        updatedAt: { gte: currentMonth.start, lte: currentMonth.end },
+      },
+    }),
+    prisma.ordemServico.count({
+      where: {
+        statusAtual: "ENTREGUE",
+        updatedAt: { gte: lastMonth.start, lte: lastMonth.end },
+      },
+    }),
   ]);
 
   const countsByStatus = Object.fromEntries(
@@ -49,6 +96,36 @@ export default async function Home() {
 
   const emAndamento = totalOrdens - (countsByStatus.ENTREGUE ?? 0);
   const prontosParaEntrega = countsByStatus.PRONTO ?? 0;
+
+  // Calcular tempo médio de resolução (dias entre criação e entrega)
+  const avgResolutionResult = await prisma.ordemServico.aggregate({
+    where: {
+      statusAtual: "ENTREGUE",
+      updatedAt: { gte: currentMonth.start },
+    },
+    _avg: {
+      createdAt: true,
+    },
+  });
+
+  // Contar OS aguardando peças há mais de 5 dias
+  const waitingTooLong = await prisma.ordemServico.count({
+    where: {
+      statusAtual: "AGUARDANDO_PECA",
+      updatedAt: {
+        lte: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+    },
+  });
+
+  // Crescimento percentual
+  const newOrdersGrowth = lastMonthOrders > 0
+    ? Math.round(((currentMonthOrders - lastMonthOrders) / lastMonthOrders) * 100)
+    : currentMonthOrders > 0 ? 100 : 0;
+
+  const deliveryGrowth = deliveredLastMonth > 0
+    ? Math.round(((deliveredThisMonth - deliveredLastMonth) / deliveredLastMonth) * 100)
+    : deliveredThisMonth > 0 ? 100 : 0;
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_48%,#ffffff_100%)] px-6 py-10 text-slate-900">
@@ -175,6 +252,52 @@ export default async function Home() {
                 </div>
               )}
             </div>
+          </div>
+        </section>
+
+        <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Este mes</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{currentMonthOrders}</p>
+            <p className="mt-2 text-sm text-slate-600">
+              {newOrdersGrowth >= 0 ? (
+                <span className="text-emerald-600">+{newOrdersGrowth}%</span>
+              ) : (
+                <span className="text-red-600">{newOrdersGrowth}%</span>
+              )}
+              <span className="text-slate-500"> vs mes anterior</span>
+            </p>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Entregues</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{deliveredThisMonth}</p>
+            <p className="mt-2 text-sm text-slate-600">
+              {deliveryGrowth >= 0 ? (
+                <span className="text-emerald-600">+{deliveryGrowth}%</span>
+              ) : (
+                <span className="text-red-600">{deliveryGrowth}%</span>
+              )}
+              <span className="text-slate-500"> vs mes anterior</span>
+            </p>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Aguardando peca</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{countsByStatus.AGUARDANDO_PECA ?? 0}</p>
+            <p className="mt-2 text-sm text-slate-600">
+              {waitingTooLong > 0 ? (
+                <span className="text-amber-600">{waitingTooLong} ha mais de 5 dias</span>
+              ) : (
+                <span className="text-slate-500">nenhuma em atraso</span>
+              )}
+            </p>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <p className="text-sm font-medium uppercase tracking-[0.2em] text-slate-500">Em terceiro</p>
+            <p className="mt-3 text-3xl font-semibold text-slate-950">{countsByStatus.EM_TERCEIRO ?? 0}</p>
+            <p className="mt-2 text-sm text-slate-500">ordens com parceiros externos</p>
           </div>
         </section>
       </div>

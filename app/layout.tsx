@@ -25,7 +25,13 @@ export default async function RootLayout({
               <p className="text-sm font-semibold text-slate-950">Assistencia OS</p>
             </div>
             {session ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
+                <a href="/os" className="text-sm text-slate-600 hover:text-slate-900">
+                  Ordens
+                </a>
+                <a href="/relatorios" className="text-sm text-slate-600 hover:text-slate-900">
+                  Relatorios
+                </a>
                 {session.isAdmin && (
                   <a href="/usuarios" className="text-sm text-blue-600 hover:underline">
                     Usuarios

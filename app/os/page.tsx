@@ -11,9 +11,12 @@ type SearchParams = Promise<{
   page?: string;
   q?: string;
   status?: string;
+  from?: string;
+  to?: string;
+  sort?: string;
 }>;
 
-function buildPageHref(page: number, query: string, status: string) {
+function buildPageHref(page: number, query: string, status: string, from?: string, to?: string, sort?: string) {
   const params = new URLSearchParams();
 
   if (page > 1) {
@@ -28,6 +31,18 @@ function buildPageHref(page: number, query: string, status: string) {
     params.set("status", status);
   }
 
+  if (from) {
+    params.set("from", from);
+  }
+
+  if (to) {
+    params.set("to", to);
+  }
+
+  if (sort) {
+    params.set("sort", sort);
+  }
+
   const search = params.toString();
   return search ? `/os?${search}` : "/os";
 }
@@ -37,13 +52,35 @@ function isStatus(value: string): value is Status {
 }
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
-  const { page, q, status } = await searchParams;
+  const { page, q, status, from, to, sort } = await searchParams;
   const parsedPage = Number.parseInt(page || "1", 10);
   const currentPage = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
   const query = q?.trim() ?? "";
   const selectedStatus = status && isStatus(status) ? status : "";
+  const dateFrom = from || "";
+  const dateTo = to || "";
+  const sortBy = sort || "createdAt_desc";
   const limit = 10;
   const skip = (currentPage - 1) * limit;
+
+  // Mapear ordenação
+  const orderByMap: Record<string, { createdAt?: "asc" | "desc"; numeroExterno?: "asc" | "desc"; updatedAt?: "asc" | "desc" }> = {
+    "createdAt_desc": { createdAt: "desc" },
+    "createdAt_asc": { createdAt: "asc" },
+    "numeroExterno_desc": { numeroExterno: "desc" },
+    "numeroExterno_asc": { numeroExterno: "asc" },
+    "updatedAt_desc": { updatedAt: "desc" },
+    "updatedAt_asc": { updatedAt: "asc" },
+  };
+  const orderBy = orderByMap[sortBy] || { createdAt: "desc" };
+
+  // Construir filtro de data
+  const dateFilter: Prisma.DateTimeFilter | undefined = (dateFrom || dateTo)
+    ? {
+        gte: dateFrom ? new Date(dateFrom + "T00:00:00Z") : undefined,
+        lte: dateTo ? new Date(dateTo + "T23:59:59Z") : undefined,
+      }
+    : undefined;
 
   const where: Prisma.OrdemServicoWhereInput = {
     ...(selectedStatus ? { statusAtual: selectedStatus } : {}),
@@ -68,13 +105,14 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
           ],
         }
       : {}),
+    ...(dateFilter ? { createdAt: dateFilter } : {}),
   };
 
   const [ordens, total] = await Promise.all([
     prisma.ordemServico.findMany({
       where,
       include: { equipamento: true },
-      orderBy: { createdAt: "desc" },
+      orderBy,
       take: limit,
       skip,
     }),
@@ -97,7 +135,8 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
               <p className="text-sm text-slate-600">
                 {total} resultado{total === 1 ? "" : "s"} encontrado{total === 1 ? "" : "s"}
                 {query ? ` para "${query}"` : ""}
-                {selectedStatus ? ` em ${STATUS_META[selectedStatus].label.toLowerCase()}` : ""}.
+                {selectedStatus ? ` em ${STATUS_META[selectedStatus].label.toLowerCase()}` : ""}
+                {dateFrom || dateTo ? ` entre ${dateFrom || "..."} e ${dateTo || "..."}` : ""}.
               </p>
             </div>
 
@@ -117,7 +156,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
             </div>
           </div>
 
-          <form className="mt-6 grid gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[1.5fr_0.8fr_auto]">
+          <form className="mt-6 grid gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[1.5fr_0.8fr_0.6fr_0.6fr_0.5fr]">
             <label className="space-y-2">
               <span className="text-sm font-medium text-slate-700">Buscar por OS, origem ou equipamento</span>
               <input
@@ -145,14 +184,50 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
               </select>
             </label>
 
-            <div className="flex items-end gap-3">
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-700">De</span>
+              <input
+                type="date"
+                name="from"
+                defaultValue={dateFrom}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-700">Ate</span>
+              <input
+                type="date"
+                name="to"
+                defaultValue={dateTo}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
+            </label>
+
+            <label className="space-y-2">
+              <span className="text-sm font-medium text-slate-700">Ordenar</span>
+              <select
+                name="sort"
+                defaultValue={sortBy}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              >
+                <option value="createdAt_desc">Mais recentes</option>
+                <option value="createdAt_asc">Mais antigos</option>
+                <option value="numeroExterno_desc">OS (Z-A)</option>
+                <option value="numeroExterno_asc">OS (A-Z)</option>
+                <option value="updatedAt_desc">Atualizado (rec)</option>
+                <option value="updatedAt_asc">Atualizado (ant)</option>
+              </select>
+            </label>
+
+            <div className="flex items-end gap-3 lg:col-span-5">
               <button
                 type="submit"
                 className="w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
                 Filtrar
               </button>
-              {(query || selectedStatus) && (
+              {(query || selectedStatus || dateFrom || dateTo || sortBy !== "createdAt_desc") && (
                 <Link
                   href="/os"
                   className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"

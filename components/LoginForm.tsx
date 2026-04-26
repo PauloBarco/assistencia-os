@@ -39,8 +39,8 @@ export function LoginForm({ defaultUsername }: { defaultUsername: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <label className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <label className="block space-y-2">
         <span className="text-sm font-medium text-slate-700">Usuario</span>
         <input
           value={username}

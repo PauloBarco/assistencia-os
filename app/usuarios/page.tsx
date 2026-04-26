@@ -101,7 +101,7 @@ export default function UsuariosPage() {
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Gerenciar Usuarios</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Gerenciar Usuarios</h1>
         <button onClick={openNew} className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
           + Novo Usuario
         </button>
@@ -109,28 +109,28 @@ export default function UsuariosPage() {
 
       {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">{error}</div>}
 
-      <table className="w-full border-collapse border border-gray-300">
+      <table className="w-full border-collapse border border-slate-300">
         <thead>
-          <tr className="bg-gray-100">
-            <th className="border border-gray-300 px-4 py-2 text-left">Username</th>
-            <th className="border border-gray-300 px-4 py-2 text-left">Nome</th>
-            <th className="border border-gray-300 px-4 py-2 text-center">Admin</th>
-            <th className="border border-gray-300 px-4 py-2 text-center">Acoes</th>
+          <tr className="bg-slate-100">
+            <th className="border border-slate-300 px-4 py-2 text-left text-slate-800">Username</th>
+            <th className="border border-slate-300 px-4 py-2 text-left text-slate-800">Nome</th>
+            <th className="border border-slate-300 px-4 py-2 text-center text-slate-800">Admin</th>
+            <th className="border border-slate-300 px-4 py-2 text-center text-slate-800">Acoes</th>
           </tr>
         </thead>
         <tbody>
           {usuarios.map((user) => (
-            <tr key={user.id} className="hover:bg-gray-50">
-              <td className="border border-gray-300 px-4 py-2">{user.username}</td>
-              <td className="border border-gray-300 px-4 py-2">{user.nome}</td>
-              <td className="border border-gray-300 px-4 py-2 text-center">
+            <tr key={user.id} className="hover:bg-slate-50">
+              <td className="border border-slate-300 px-4 py-2 text-slate-800">{user.username}</td>
+              <td className="border border-slate-300 px-4 py-2 text-slate-800">{user.nome}</td>
+              <td className="border border-slate-300 px-4 py-2 text-center text-slate-800">
                 {user.isAdmin ? "Sim" : "Nao"}
               </td>
-              <td className="border border-gray-300 px-4 py-2 text-center">
-                <button onClick={() => openEdit(user)} className="text-blue-600 hover:underline mr-3">
+              <td className="border border-slate-300 px-4 py-2 text-center">
+                <button onClick={() => openEdit(user)} className="text-blue-700 hover:underline mr-3 font-medium">
                   Editar
                 </button>
-                <button onClick={() => handleDelete(user)} className="text-red-600 hover:underline">
+                <button onClick={() => handleDelete(user)} className="text-red-700 hover:underline font-medium">
                   Excluir
                 </button>
               </td>
@@ -142,44 +142,44 @@ export default function UsuariosPage() {
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-xl font-bold mb-4">{editingUser ? "Editar Usuario" : "Novo Usuario"}</h2>
+            <h2 className="text-xl font-bold mb-4 text-slate-800">{editingUser ? "Editar Usuario" : "Novo Usuario"}</h2>
             <form onSubmit={handleSubmit}>
               {!editingUser && (
                 <div className="mb-3">
-                  <label className="block text-sm font-medium mb-1">Username</label>
+                  <label className="block text-sm font-medium mb-1 text-slate-800">Username</label>
                   <input
                     type="text"
                     value={form.username}
                     onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    className="w-full border border-gray-300 px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded text-slate-800"
                     required
                   />
                 </div>
               )}
               <div className="mb-3">
-                <label className="block text-sm font-medium mb-1">Nome</label>
+                  <label className="block text-sm font-medium mb-1 text-slate-800">Nome</label>
                 <input
                   type="text"
                   value={form.nome}
                   onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                  className="w-full border border-gray-300 px-3 py-2 rounded"
+                  className="w-full border border-slate-300 px-3 py-2 rounded text-slate-800"
                   required
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-sm font-medium mb-1">
-                  Senha {editingUser && "(deixe vazio para manter)"}
-                </label>
+                  <label className="block text-sm font-medium mb-1 text-slate-800">
+                    Senha {editingUser && "(deixe vazio para manter)"}
+                  </label>
                 <input
                   type="password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full border border-gray-300 px-3 py-2 rounded"
+                  className="w-full border border-slate-300 px-3 py-2 rounded text-slate-800"
                   required={!editingUser}
                 />
               </div>
               <div className="mb-4">
-                <label className="flex items-center">
+                  <label className="flex items-center text-slate-800">
                   <input
                     type="checkbox"
                     checked={form.isAdmin}
@@ -190,7 +190,7 @@ export default function UsuariosPage() {
                 </label>
               </div>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-slate-300 rounded text-slate-700 hover:bg-slate-100">
                   Cancelar
                 </button>
                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
