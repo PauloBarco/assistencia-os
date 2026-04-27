@@ -39,24 +39,25 @@ export function LoginForm({ defaultUsername }: { defaultUsername: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <label className="block space-y-2">
-        <span className="text-sm font-medium text-slate-700">Usuario</span>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <label className="block space-y-3">
+        <span className="text-sm font-medium text-slate-900">Usuario</span>
         <input
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+          placeholder="Digite seu usuario"
+          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
         />
       </label>
-      <label className="space-y-2">
-        <span className="text-sm font-medium text-slate-700">Senha</span>
+      <label className="block space-y-3">
+        <span className="text-sm font-medium text-slate-900">Senha</span>
         <div className="relative">
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Digite sua senha"
-            className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:bg-white focus:ring-4 focus:ring-sky-100"
+            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
           />
         </div>
       </label>
