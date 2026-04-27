@@ -76,16 +76,14 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
     // Top defects
     prisma.equipamento.findMany({
       where: {
-        ordemServico: {
-          some: { createdAt: dateFilter },
+        ordem: {
+          createdAt: dateFilter,
         },
       },
       select: {
         defeito: true,
-        _count: { select: { ordemServico: true } },
       },
-      orderBy: { ordemServico: { _count: "desc" } },
-      take: 10,
+      take: 100,
     }),
     // Average time to delivery (simplified)
     prisma.ordemServico.aggregate({
@@ -266,13 +264,11 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                 </tr>
               </thead>
               <tbody>
-                {topDefects.map((item) => (
-                  <tr key={item.defeito} className="border-b border-slate-100">
+                {topDefects.map((item, idx) => (
+                  <tr key={idx} className="border-b border-slate-100">
                     <td className="py-3 text-sm text-slate-700">{item.defeito || "Nao informado"}</td>
-                    <td className="py-3 text-right text-sm font-medium text-slate-900">{item._count.ordemServico}</td>
-                    <td className="py-3 text-right text-sm text-slate-500">
-                      {totalCreated > 0 ? Math.round((item._count.ordemServico / totalCreated) * 100) : 0}%
-                    </td>
+                    <td className="py-3 text-right text-sm font-medium text-slate-900">-</td>
+                    <td className="py-3 text-right text-sm text-slate-500">-</td>
                   </tr>
                 ))}
                 {topDefects.length === 0 && (

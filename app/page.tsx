@@ -97,17 +97,6 @@ export default async function Home() {
   const emAndamento = totalOrdens - (countsByStatus.ENTREGUE ?? 0);
   const prontosParaEntrega = countsByStatus.PRONTO ?? 0;
 
-  // Calcular tempo médio de resolução (dias entre criação e entrega)
-  const avgResolutionResult = await prisma.ordemServico.aggregate({
-    where: {
-      statusAtual: "ENTREGUE",
-      updatedAt: { gte: currentMonth.start },
-    },
-    _avg: {
-      createdAt: true,
-    },
-  });
-
   // Contar OS aguardando peças há mais de 5 dias
   const waitingTooLong = await prisma.ordemServico.count({
     where: {
