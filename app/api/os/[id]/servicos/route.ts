@@ -1,5 +1,5 @@
 import { recordAuditLog } from "@/lib/audit";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../../../../generated/prisma/client";
 
 import { jsonError, parseJsonBody } from "@/lib/http";
 import { prisma } from "@/lib/prisma";

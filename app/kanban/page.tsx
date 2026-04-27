@@ -8,7 +8,7 @@ import {
   Droppable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { Equipamento, Evento, OrdemServico, Status } from "@prisma/client";
+import { Equipamento, Evento, OrdemServico, Status } from "../../generated/prisma/client";
 
 import { STATUS_COLUMNS, STATUS_META } from "@/lib/status-meta";
 import { LoadingCard } from "@/components/Loading";
@@ -106,7 +106,7 @@ export default function Page() {
       status,
       filteredOrdens.filter((ordem) => ordem.statusAtual === status),
     ])
-  ) as Record<Status, OrdemComIncludes[]>;
+  ) as Record<string, OrdemComIncludes[]>;
 
   const deliveredOrdens = grupos.ENTREGUE;
   const activeOrdensCount = filteredOrdens.length - deliveredOrdens.length;

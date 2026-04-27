@@ -1,4 +1,4 @@
-import type { TipoEvento } from "@prisma/client";
+import type { TipoEvento } from "../generated/prisma/client";
 
 export const EVENT_META: Record<TipoEvento, { label: string; dot: string }> = {
   RECEBIMENTO: { label: "Recebimento", dot: "bg-slate-500" },

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { jsonError, parseJsonBody } from "@/lib/http";
 import { requireRequestSession } from "@/lib/route-auth";
 import { validateCreateEventoInput } from "@/lib/validators";
-import { Prisma, Status } from "@prisma/client";
+import { Prisma, Status } from "../../../generated/prisma/client";
 
 export async function POST(req: Request) {
   const auth = requireRequestSession(req);
