@@ -10,6 +10,7 @@ datasource db {
 model OrdemServico {
   id            String   @id @default(uuid())
   numeroExterno String
+  numeroTerceiro String?  // Número de OS do fornecedor/serviço externo
   origem        String
   descricao     String?
   statusAtual   Status   @default(RECEBIDO)

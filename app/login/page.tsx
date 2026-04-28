@@ -28,9 +28,6 @@ export default async function LoginPage() {
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
           <div className="mb-5">
             <h2 className="text-xl font-semibold text-slate-950">Login</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Usuario padrao atual: <span className="font-semibold text-slate-900">{getConfiguredUsername()}</span>
-            </p>
           </div>
           <LoginForm defaultUsername={getConfiguredUsername()} />
         </div>

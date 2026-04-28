@@ -4,6 +4,7 @@ import { isNonEmptyString, isRecord, optionalTrimmedString } from "@/lib/http";
 
 export type CreateOsInput = {
   numero: string;
+  numeroTerceiro?: string;
   origem: string;
   descricao?: string;
   tipo: string;
@@ -71,6 +72,7 @@ export function validateCreateOsInput(payload: unknown): CreateOsInput | null {
 
   return {
     numero: payload.numero.trim(),
+    numeroTerceiro: optionalTrimmedString(payload.numeroTerceiro),
     origem: payload.origem.trim(),
     descricao: optionalTrimmedString(payload.descricao),
     tipo: payload.tipo.trim(),
