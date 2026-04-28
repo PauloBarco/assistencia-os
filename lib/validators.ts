@@ -1,4 +1,4 @@
-import { Status, TipoEvento } from "../generated/prisma/client";
+import { Status, TipoEvento } from "@prisma/client";
 
 import { isNonEmptyString, isRecord, optionalTrimmedString } from "@/lib/http";
 

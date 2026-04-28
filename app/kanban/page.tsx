@@ -8,7 +8,7 @@ import {
   Droppable,
   DropResult,
 } from "@hello-pangea/dnd";
-import { Equipamento, Evento, OrdemServico, Status } from "../../generated/prisma/client";
+import { Equipamento, Evento, OrdemServico, Status } from "@prisma/client";
 
 import { STATUS_COLUMNS, STATUS_META } from "@/lib/status-meta";
 import { LoadingCard } from "@/components/Loading";

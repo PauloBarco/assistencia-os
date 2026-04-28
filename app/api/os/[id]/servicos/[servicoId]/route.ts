@@ -1,4 +1,4 @@
-import { Prisma } from "../../../../../generated/prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { recordAuditLog } from "@/lib/audit";
 import { jsonError, parseJsonBody } from "@/lib/http";
