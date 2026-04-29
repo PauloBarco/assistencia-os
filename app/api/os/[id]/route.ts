@@ -37,6 +37,7 @@ export async function PUT(req: Request, context: RouteContext) {
         where: { id },
         data: {
           numeroExterno: input.numero,
+          numeroTerceiro: input.numeroTerceiro || null,
           origem: input.origem,
           descricao: input.descricao,
         },

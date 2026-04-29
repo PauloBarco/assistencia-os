@@ -71,6 +71,11 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
                   OS {os.numeroExterno}
                 </h1>
+                {os.numeroTerceiro && (
+                  <p className="text-lg text-slate-600">
+                    Nº Terceiro: <span className="font-medium text-sky-700">{os.numeroTerceiro}</span>
+                  </p>
+                )}
                 <p className="text-lg text-slate-600">
                   {os.equipamento?.marca} {os.equipamento?.modelo}
                 </p>

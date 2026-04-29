@@ -7,6 +7,7 @@ type EditOsFormProps = {
   ordemId: string;
   initialValues: {
     numero: string;
+    numeroTerceiro?: string | null;
     origem: string;
     descricao?: string | null;
     tipo?: string | null;
@@ -19,6 +20,7 @@ type EditOsFormProps = {
 
 type FormState = {
   numero: string;
+  numeroTerceiro: string;
   origem: string;
   descricao: string;
   tipo: string;
@@ -34,6 +36,7 @@ export function EditOsForm({ ordemId, initialValues }: EditOsFormProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>({
     numero: initialValues.numero,
+    numeroTerceiro: initialValues.numeroTerceiro ?? "",
     origem: initialValues.origem,
     descricao: initialValues.descricao ?? "",
     tipo: initialValues.tipo ?? "",
@@ -88,6 +91,10 @@ export function EditOsForm({ ordemId, initialValues }: EditOsFormProps) {
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Numero da OS</span>
             <input value={form.numero} onChange={(e) => updateField("numero", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
+          </label>
+          <label className="space-y-2">
+            <span className="text-sm font-medium text-slate-700">Nº OS Terceiro</span>
+            <input value={form.numeroTerceiro} onChange={(e) => updateField("numeroTerceiro", e.target.value)} placeholder="Nº do fornecedor/serviço externo" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Origem</span>

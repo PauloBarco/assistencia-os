@@ -88,6 +88,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
       ? {
           OR: [
             { numeroExterno: { contains: query, mode: "insensitive" } },
+            { numeroTerceiro: { contains: query, mode: "insensitive" } },
             { origem: { contains: query, mode: "insensitive" } },
             { descricao: { contains: query, mode: "insensitive" } },
             {

@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const os = await prisma.ordemServico.create({
       data: {
         numeroExterno: input.numero,
+        numeroTerceiro: input.numeroTerceiro || null,
         origem: input.origem,
         descricao: input.descricao,
 

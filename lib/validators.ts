@@ -26,6 +26,7 @@ export type UpdateStatusInput = {
 
 export type UpdateOsInput = {
   numero: string;
+  numeroTerceiro?: string;
   origem: string;
   descricao?: string;
   tipo: string;
@@ -143,6 +144,7 @@ export function validateUpdateOsInput(payload: unknown): UpdateOsInput | null {
 
   return {
     numero: payload.numero.trim(),
+    numeroTerceiro: optionalTrimmedString(payload.numeroTerceiro),
     origem: payload.origem.trim(),
     descricao: optionalTrimmedString(payload.descricao),
     tipo: payload.tipo.trim(),
