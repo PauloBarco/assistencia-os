@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authenticatedRequest } from "./auth-helpers";
 
-const prismaMock = {
-  $transaction: vi.fn(),
-};
+const { prismaMock } = vi.hoisted(() => ({
+  prismaMock: {
+    $transaction: vi.fn(),
+  },
+}));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: prismaMock,
@@ -21,7 +23,7 @@ describe("PUT /api/os/[id]", () => {
       authenticatedRequest("http://localhost/api/os/os-1", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ numero: "", origem: "Balcao" }),
+        body: JSON.stringify({ numero: "", cliente: "Paulo Silva" }),
       }),
       { params: Promise.resolve({ id: "os-1" }) }
     );
@@ -35,7 +37,7 @@ describe("PUT /api/os/[id]", () => {
   it("updates OS and equipamento inside a transaction", async () => {
     const tx = {
       ordemServico: {
-        update: vi.fn().mockResolvedValue({ id: "os-1", numeroExterno: "2026-777", origem: "Parceiro" }),
+        update: vi.fn().mockResolvedValue({ id: "os-1", numeroExterno: "2026-777", cliente: "Paulo Silva" }),
       },
       equipamento: {
         update: vi.fn().mockResolvedValue({ ordemId: "os-1" }),
@@ -52,7 +54,7 @@ describe("PUT /api/os/[id]", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           numero: "2026-777",
-          origem: "Parceiro",
+          cliente: "Paulo Silva",
           descricao: "Atualizada",
           tipo: "Notebook",
           marca: "Lenovo",
@@ -69,7 +71,8 @@ describe("PUT /api/os/[id]", () => {
       where: { id: "os-1" },
       data: {
         numeroExterno: "2026-777",
-        origem: "Parceiro",
+        numeroTerceiro: null,
+        cliente: "Paulo Silva",
         descricao: "Atualizada",
       },
     });

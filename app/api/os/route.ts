@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       data: {
         numeroExterno: input.numero,
         numeroTerceiro: input.numeroTerceiro || null,
-        origem: input.origem,
+        cliente: input.cliente,
         descricao: input.descricao,
 
         equipamento: {
@@ -85,7 +85,7 @@ export async function GET(req: Request) {
       select: {
         id: true,
         numeroExterno: true,
-        origem: true,
+        cliente: true,
         statusAtual: true,
         createdAt: true,
         equipamento: {

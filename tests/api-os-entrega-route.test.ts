@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authenticatedRequest } from "./auth-helpers";
 
-const prismaMock = {
-  $transaction: vi.fn(),
-};
+const { prismaMock } = vi.hoisted(() => ({
+  prismaMock: {
+    $transaction: vi.fn(),
+  },
+}));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: prismaMock,

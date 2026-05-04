@@ -87,8 +87,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                   <p className="mt-2 text-sm font-semibold text-slate-900">{os.equipamento?.tipo || "Nao informado"}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Origem</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{os.origem}</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Cliente</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{os.cliente}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
                   <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Criada em</p>
@@ -140,7 +140,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
               ordemId={os.id}
               initialValues={{
                 numero: os.numeroExterno,
-                origem: os.origem,
+                cliente: os.cliente,
                 descricao: os.descricao,
                 tipo: os.equipamento?.tipo,
                 marca: os.equipamento?.marca,

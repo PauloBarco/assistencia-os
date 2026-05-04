@@ -96,13 +96,15 @@ export default async function Home() {
 
   const emAndamento = totalOrdens - (countsByStatus.ENTREGUE ?? 0);
   const prontosParaEntrega = countsByStatus.PRONTO ?? 0;
+  const fiveDaysAgo = new Date();
+  fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
 
   // Contar OS aguardando peças há mais de 5 dias
   const waitingTooLong = await prisma.ordemServico.count({
     where: {
       statusAtual: "AGUARDANDO_PECA",
       updatedAt: {
-        lte: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        lte: fiveDaysAgo,
       },
     },
   });
@@ -223,7 +225,7 @@ export default async function Home() {
                         <p className="mt-1 text-sm text-slate-600">
                           {ordem.equipamento?.marca} {ordem.equipamento?.modelo}
                         </p>
-                        <p className="mt-1 text-sm text-slate-500">Origem: {ordem.origem}</p>
+                        <p className="mt-1 text-sm text-slate-500">Cliente: {ordem.cliente}</p>
                       </div>
 
                       <div className="text-right">

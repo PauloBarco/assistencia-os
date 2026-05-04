@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getConfiguredUsername, getSessionFromCookies, isUsingPlaceholderAuthConfig } from "@/lib/auth";
+import { getConfiguredUsername, getSessionFromCookies } from "@/lib/auth";
 import { LoginForm } from "@/components/LoginForm";
 
 export default async function LoginPage() {

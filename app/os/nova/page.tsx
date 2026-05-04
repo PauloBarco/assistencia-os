@@ -47,7 +47,7 @@ export default function NovaOsPage() {
           <aside className="rounded-[1.75rem] border border-slate-200 bg-slate-950 p-6 text-white shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
             <h2 className="text-xl font-semibold">Checklist de entrada</h2>
             <div className="mt-5 space-y-4 text-sm leading-7 text-slate-300">
-              <p>Confirme numero da OS e origem antes de salvar para evitar duplicidade operacional.</p>
+              <p>Confirme numero da OS e cliente antes de salvar para evitar duplicidade operacional.</p>
               <p>Use o campo de defeito para registrar exatamente o relato do cliente, sem resumir demais.</p>
               <p>Em observacoes iniciais, vale anotar acessorios, senha, avarias cosmeticas e condicoes de teste.</p>
             </div>

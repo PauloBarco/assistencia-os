@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import type { Prisma } from "@prisma/client";
+import Link from "next/link";
 
 import { prisma } from "@/lib/prisma";
 import { STATUS_META } from "@/lib/status-meta";
@@ -8,14 +9,12 @@ import { STATUS_META } from "@/lib/status-meta";
 type SearchParams = Promise<{
   from?: string;
   to?: string;
-  tipo?: string;
 }>;
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
-  const { from, to, tipo } = await searchParams;
+  const { from, to } = await searchParams;
   const dateFrom = from || "";
   const dateTo = to || "";
-  const reportType = tipo || "resumo";
 
   // Default to current month
   const now = new Date();
@@ -29,16 +28,16 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
     gte: new Date(filterFrom + "T00:00:00Z"),
     lte: new Date(filterTo + "T23:59:59Z"),
   };
+  const fiveDaysAgo = new Date(now);
+  fiveDaysAgo.setDate(now.getDate() - 5);
 
   // Queries for different report types
   const [
     totalCreated,
     totalDelivered,
     byStatus,
-    byOrigin,
-    byEquipmentType,
+    byClient,
     topDefects,
-    avgTimeToDelivery,
     pendingOver5Days,
   ] = await Promise.all([
     // Total created in period
@@ -58,20 +57,11 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
       _count: { statusAtual: true },
       where: { createdAt: dateFilter },
     }),
-    // By origin
+    // By client
     prisma.ordemServico.groupBy({
-      by: ["origem"],
-      _count: { origem: true },
+      by: ["cliente"],
+      _count: { cliente: true },
       where: { createdAt: dateFilter },
-    }),
-    // By equipment type
-    prisma.ordemServico.groupBy({
-      by: ["statusAtual"],
-      _count: { statusAtual: true },
-      where: {
-        createdAt: dateFilter,
-        equipamento: { isNot: null },
-      },
     }),
     // Top defects
     prisma.equipamento.findMany({
@@ -85,19 +75,11 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
       },
       take: 100,
     }),
-    // Average time to delivery (simplified)
-    prisma.ordemServico.aggregate({
-      where: {
-        statusAtual: "ENTREGUE",
-        updatedAt: dateFilter,
-      },
-      _count: { id: true },
-    }),
     // Pending over 5 days
     prisma.ordemServico.count({
       where: {
         statusAtual: { in: ["AGUARDANDO_PECA", "EM_TERCEIRO", "EM_MANUTENCAO", "EM_ANALISE"] },
-        updatedAt: { lte: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) },
+        updatedAt: { lte: fiveDaysAgo },
       },
     }),
   ]);
@@ -106,8 +88,8 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
     byStatus.map((g) => [g.statusAtual, g._count.statusAtual])
   ) as Partial<Record<string, number>>;
 
-  const originCounts = Object.fromEntries(
-    byOrigin.map((g) => [g.origem, g._count.origem])
+  const clientCounts = Object.fromEntries(
+    byClient.map((g) => [g.cliente, g._count.cliente])
   ) as Record<string, number>;
 
   return (
@@ -126,12 +108,12 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <a
+              <Link
                 href="/"
                 className="inline-flex rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
               >
                 Voltar ao painel
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -227,15 +209,15 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
           </div>
 
           <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <h2 className="text-xl font-semibold text-slate-950">Por origem</h2>
+            <h2 className="text-xl font-semibold text-slate-950">Por cliente</h2>
             <div className="mt-4 space-y-3">
-              {Object.entries(originCounts)
+              {Object.entries(clientCounts)
                 .sort((a, b) => b[1] - a[1])
-                .map(([origin, count]) => {
+                .map(([client, count]) => {
                   const percentage = totalCreated > 0 ? Math.round((count / totalCreated) * 100) : 0;
                   return (
-                    <div key={origin} className="flex items-center gap-3">
-                      <span className="w-32 text-sm text-slate-700">{origin}</span>
+                    <div key={client} className="flex items-center gap-3">
+                      <span className="w-32 text-sm text-slate-700">{client}</span>
                       <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div className="h-full bg-sky-500" style={{ width: `${percentage}%` }}></div>
                       </div>
@@ -244,7 +226,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                     </div>
                   );
                 })}
-              {Object.keys(originCounts).length === 0 && (
+              {Object.keys(clientCounts).length === 0 && (
                 <p className="text-sm text-slate-500">Nenhuma ordem no periodo.</p>
               )}
             </div>

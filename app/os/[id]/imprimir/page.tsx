@@ -73,7 +73,7 @@ export default async function ImprimirOsPage({ params }: { params: Promise<{ id:
           <div>
             <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Atendimento</h2>
             <div className="mt-4 space-y-2 text-sm text-slate-700">
-              <p><span className="font-semibold text-slate-950">Origem:</span> {os.origem}</p>
+              <p><span className="font-semibold text-slate-950">Cliente:</span> {os.cliente}</p>
               <p><span className="font-semibold text-slate-950">Abertura:</span> {formatDateOnly(os.createdAt)}</p>
               <p><span className="font-semibold text-slate-950">Status atual:</span> {STATUS_META[os.statusAtual].label}</p>
             </div>

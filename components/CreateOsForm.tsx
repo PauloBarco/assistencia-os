@@ -6,7 +6,7 @@ import { startTransition, useState } from "react";
 type FormState = {
   numero: string;
   numeroTerceiro: string;
-  origem: string;
+  cliente: string;
   descricao: string;
   tipo: string;
   marca: string;
@@ -17,7 +17,7 @@ type FormState = {
 const INITIAL_STATE: FormState = {
   numero: "",
   numeroTerceiro: "",
-  origem: "",
+  cliente: "",
   descricao: "",
   tipo: "",
   marca: "",
@@ -109,11 +109,11 @@ export function CreateOsForm() {
           onChange={(value) => updateField("numeroTerceiro", value)}
         />
         <TextField
-          id="origem"
-          label="Origem"
-          placeholder="Balcao, parceiro, coleta..."
-          value={form.origem}
-          onChange={(value) => updateField("origem", value)}
+          id="cliente"
+          label="Cliente"
+          placeholder="Nome do cliente"
+          value={form.cliente}
+          onChange={(value) => updateField("cliente", value)}
         />
         <TextField
           id="tipo"

@@ -89,7 +89,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
           OR: [
             { numeroExterno: { contains: query, mode: "insensitive" } },
             { numeroTerceiro: { contains: query, mode: "insensitive" } },
-            { origem: { contains: query, mode: "insensitive" } },
+            { cliente: { contains: query, mode: "insensitive" } },
             { descricao: { contains: query, mode: "insensitive" } },
             {
               equipamento: {
@@ -159,12 +159,12 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
 
           <form className="mt-6 grid gap-4 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[1.5fr_0.8fr_0.6fr_0.6fr_0.5fr]">
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Buscar por OS, origem ou equipamento</span>
+              <span className="text-sm font-medium text-slate-700">Buscar por OS, cliente ou equipamento</span>
               <input
                 type="search"
                 name="q"
                 defaultValue={query}
-                placeholder="Ex.: 2026-00124, notebook, Dell, parceiro..."
+                placeholder="Ex.: 2026-00124, notebook, Dell, cliente..."
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               />
             </label>
@@ -263,7 +263,7 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                     </p>
 
                     <p className="text-sm text-slate-500">
-                      Origem: {os.origem}
+                      Cliente: {os.cliente}
                     </p>
 
                     {os.equipamento?.defeito && (

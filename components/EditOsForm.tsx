@@ -8,7 +8,7 @@ type EditOsFormProps = {
   initialValues: {
     numero: string;
     numeroTerceiro?: string | null;
-    origem: string;
+    cliente: string;
     descricao?: string | null;
     tipo?: string | null;
     marca?: string | null;
@@ -21,7 +21,7 @@ type EditOsFormProps = {
 type FormState = {
   numero: string;
   numeroTerceiro: string;
-  origem: string;
+  cliente: string;
   descricao: string;
   tipo: string;
   marca: string;
@@ -37,7 +37,7 @@ export function EditOsForm({ ordemId, initialValues }: EditOsFormProps) {
   const [form, setForm] = useState<FormState>({
     numero: initialValues.numero,
     numeroTerceiro: initialValues.numeroTerceiro ?? "",
-    origem: initialValues.origem,
+    cliente: initialValues.cliente,
     descricao: initialValues.descricao ?? "",
     tipo: initialValues.tipo ?? "",
     marca: initialValues.marca ?? "",
@@ -82,7 +82,7 @@ export function EditOsForm({ ordemId, initialValues }: EditOsFormProps) {
       <div className="mb-5">
         <h3 className="text-xl font-semibold text-slate-950">Editar dados da OS</h3>
         <p className="mt-2 text-sm text-slate-600">
-          Atualize numero, origem e dados do equipamento sem sair da ordem.
+          Atualize numero, cliente e dados do equipamento sem sair da ordem.
         </p>
       </div>
 
@@ -97,8 +97,8 @@ export function EditOsForm({ ordemId, initialValues }: EditOsFormProps) {
             <input value={form.numeroTerceiro} onChange={(e) => updateField("numeroTerceiro", e.target.value)} placeholder="Nº do fornecedor/serviço externo" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium text-slate-700">Origem</span>
-            <input value={form.origem} onChange={(e) => updateField("origem", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
+            <span className="text-sm font-medium text-slate-700">Cliente</span>
+            <input value={form.cliente} onChange={(e) => updateField("cliente", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100" />
           </label>
           <label className="space-y-2">
             <span className="text-sm font-medium text-slate-700">Tipo</span>

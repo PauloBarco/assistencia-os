@@ -28,7 +28,7 @@ export default function UsuariosPage() {
       if (!res.ok) throw new Error("Nao autorizado");
       const data = await res.json();
       setUsuarios(data);
-    } catch (err) {
+    } catch {
       setError("Erro ao carregar usuarios");
     } finally {
       setLoading(false);

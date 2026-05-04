@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+
 import { getSessionFromCookies } from "@/lib/auth";
 import { LogoutButton } from "@/components/LogoutButton";
 import "./globals.css";
@@ -26,16 +28,16 @@ export default async function RootLayout({
             </div>
             {session ? (
               <div className="flex items-center gap-4">
-                <a href="/os" className="text-sm text-slate-600 hover:text-slate-900">
+                <Link href="/os" className="text-sm text-slate-600 hover:text-slate-900">
                   Ordens
-                </a>
-                <a href="/relatorios" className="text-sm text-slate-600 hover:text-slate-900">
+                </Link>
+                <Link href="/relatorios" className="text-sm text-slate-600 hover:text-slate-900">
                   Relatorios
-                </a>
+                </Link>
                 {session.isAdmin && (
-                  <a href="/usuarios" className="text-sm text-blue-600 hover:underline">
+                  <Link href="/usuarios" className="text-sm text-blue-600 hover:underline">
                     Usuarios
-                  </a>
+                  </Link>
                 )}
                 <span className="text-sm text-slate-500">{session.username}</span>
                 <LogoutButton />

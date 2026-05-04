@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authenticatedRequest } from "./auth-helpers";
 
-const prismaMock = {
-  ordemServico: {
-    create: vi.fn(),
+const { prismaMock } = vi.hoisted(() => ({
+  prismaMock: {
+    ordemServico: {
+      create: vi.fn(),
+    },
   },
-};
+}));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: prismaMock,
@@ -25,7 +27,7 @@ describe("POST /api/os", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           numero: "",
-          origem: "Balcao",
+          cliente: "Paulo Silva",
         }),
       })
     );
@@ -45,7 +47,7 @@ describe("POST /api/os", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           numero: "2026-401",
-          origem: "Balcao",
+          cliente: "Paulo Silva",
           descricao: "Sem energia",
         }),
       })
@@ -61,7 +63,7 @@ describe("POST /api/os", () => {
     prismaMock.ordemServico.create.mockResolvedValue({
       id: "os-1",
       numeroExterno: "2026-001",
-      origem: "Balcao",
+      cliente: "Paulo Silva",
       descricao: "Sem video",
       equipamento: {
         id: "eq-1",
@@ -87,7 +89,7 @@ describe("POST /api/os", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           numero: "2026-001",
-          origem: "Balcao",
+          cliente: "Paulo Silva",
           descricao: "Sem video",
           tipo: "Notebook",
           marca: "Dell",
@@ -101,7 +103,8 @@ describe("POST /api/os", () => {
     expect(prismaMock.ordemServico.create).toHaveBeenCalledWith({
       data: {
         numeroExterno: "2026-001",
-        origem: "Balcao",
+        numeroTerceiro: null,
+        cliente: "Paulo Silva",
         descricao: "Sem video",
         equipamento: {
           create: {

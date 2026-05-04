@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authenticatedRequest } from "./auth-helpers";
 
-const prismaMock = {
-  servicoRealizado: {
-    findUnique: vi.fn(),
-    delete: vi.fn(),
+const { prismaMock } = vi.hoisted(() => ({
+  prismaMock: {
+    servicoRealizado: {
+      findUnique: vi.fn(),
+      delete: vi.fn(),
+    },
   },
-};
+}));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: prismaMock,

@@ -5,7 +5,7 @@ import { isNonEmptyString, isRecord, optionalTrimmedString } from "@/lib/http";
 export type CreateOsInput = {
   numero: string;
   numeroTerceiro?: string;
-  origem: string;
+  cliente: string;
   descricao?: string;
   tipo: string;
   marca: string;
@@ -27,7 +27,7 @@ export type UpdateStatusInput = {
 export type UpdateOsInput = {
   numero: string;
   numeroTerceiro?: string;
-  origem: string;
+  cliente: string;
   descricao?: string;
   tipo: string;
   marca: string;
@@ -62,7 +62,7 @@ export function validateCreateOsInput(payload: unknown): CreateOsInput | null {
 
   if (
     !isNonEmptyString(payload.numero) ||
-    !isNonEmptyString(payload.origem) ||
+    !isNonEmptyString(payload.cliente) ||
     !isNonEmptyString(payload.tipo) ||
     !isNonEmptyString(payload.marca) ||
     !isNonEmptyString(payload.modelo) ||
@@ -74,7 +74,7 @@ export function validateCreateOsInput(payload: unknown): CreateOsInput | null {
   return {
     numero: payload.numero.trim(),
     numeroTerceiro: optionalTrimmedString(payload.numeroTerceiro),
-    origem: payload.origem.trim(),
+    cliente: payload.cliente.trim(),
     descricao: optionalTrimmedString(payload.descricao),
     tipo: payload.tipo.trim(),
     marca: payload.marca.trim(),
@@ -133,7 +133,7 @@ export function validateUpdateOsInput(payload: unknown): UpdateOsInput | null {
 
   if (
     !isNonEmptyString(payload.numero) ||
-    !isNonEmptyString(payload.origem) ||
+    !isNonEmptyString(payload.cliente) ||
     !isNonEmptyString(payload.tipo) ||
     !isNonEmptyString(payload.marca) ||
     !isNonEmptyString(payload.modelo) ||
@@ -145,7 +145,7 @@ export function validateUpdateOsInput(payload: unknown): UpdateOsInput | null {
   return {
     numero: payload.numero.trim(),
     numeroTerceiro: optionalTrimmedString(payload.numeroTerceiro),
-    origem: payload.origem.trim(),
+    cliente: payload.cliente.trim(),
     descricao: optionalTrimmedString(payload.descricao),
     tipo: payload.tipo.trim(),
     marca: payload.marca.trim(),

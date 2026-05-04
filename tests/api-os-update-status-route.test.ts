@@ -1,12 +1,14 @@
-import { Prisma } from "../../generated/prisma/client";
+import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authenticatedRequest } from "./auth-helpers";
 
-const prismaMock = {
-  ordemServico: {
-    update: vi.fn(),
+const { prismaMock } = vi.hoisted(() => ({
+  prismaMock: {
+    ordemServico: {
+      update: vi.fn(),
+    },
   },
-};
+}));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: prismaMock,

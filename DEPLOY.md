@@ -14,7 +14,7 @@ Para produção, configure as seguintes variáveis na Vercel:
 |----------|-----------|---------|
 | `DATABASE_URL` | String de conexão do banco PostgreSQL | `postgresql://user:pass@host:5432/db` |
 | `APP_ADMIN_USERNAME` | Usuário admin padrão | `admin` |
-| `APP_ADMIN_PASSWORD` | Senha admin padrão | `admin123` |
+| `APP_ADMIN_PASSWORD` | Senha admin padrão | configure um valor secreto no ambiente |
 | `SESSION_SECRET` | Chave secreta para sessões | `sua-chave-secreta-aqui` |
 
 ---
@@ -30,10 +30,10 @@ Para produção, configure as seguintes variáveis na Vercel:
 2. **Configure as variáveis:**
    - Em "Environment Variables", adicione:
      ```
-     DATABASE_URL=postgresql://postgres:qgYLW81HeQycboR6@db.zvzvobmokluqcruomifi.supabase.co:5432/postgres
+     DATABASE_URL=postgresql://usuario:senha@host:5432/banco
      APP_ADMIN_USERNAME=admin
-     APP_ADMIN_PASSWORD=admin123
-     SESSION_SECRET=sua-chave-secreta-aqui
+     APP_ADMIN_PASSWORD=<senha-admin-secreta>
+     SESSION_SECRET=<chave-de-sessao-secreta>
      ```
 
 3. **Deploy:**

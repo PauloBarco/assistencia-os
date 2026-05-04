@@ -19,7 +19,6 @@ type OrdemComIncludes = OrdemServico & {
 };
 
 const ACTIVE_STATUS_COLUMNS = STATUS_COLUMNS.filter(({ status }) => status !== "ENTREGUE");
-const ORIGEM_FILTERS = ["Todas", "Balcao", "Parceiro", "Coleta", "Entrega"] as const;
 
 function matchesSearch(ordem: OrdemComIncludes, search: string) {
   if (!search) {
@@ -29,7 +28,7 @@ function matchesSearch(ordem: OrdemComIncludes, search: string) {
   const normalized = search.toLowerCase();
   const fields = [
     ordem.numeroExterno,
-    ordem.origem,
+    ordem.cliente,
     ordem.equipamento?.marca,
     ordem.equipamento?.modelo,
     ordem.equipamento?.tipo,
@@ -44,7 +43,7 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [selectedOrigin, setSelectedOrigin] = useState<(typeof ORIGEM_FILTERS)[number]>("Todas");
+  const [selectedClient, setSelectedClient] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<Status | "TODOS">("TODOS");
   const [showDelivered, setShowDelivered] = useState(false);
   const [compactMode, setCompactMode] = useState(false);
@@ -92,13 +91,13 @@ export default function Page() {
   }, []);
 
   const filteredOrdens = ordens.filter((ordem) => {
-    const matchesOrigin =
-      selectedOrigin === "Todas" ||
-      ordem.origem.toLowerCase().includes(selectedOrigin.toLowerCase());
+    const matchesClient =
+      !selectedClient.trim() ||
+      ordem.cliente.toLowerCase().includes(selectedClient.trim().toLowerCase());
     const matchesStatus =
       selectedStatus === "TODOS" || ordem.statusAtual === selectedStatus;
 
-    return matchesOrigin && matchesStatus && matchesSearch(ordem, deferredSearch);
+    return matchesClient && matchesStatus && matchesSearch(ordem, deferredSearch);
   });
 
   const grupos = Object.fromEntries(
@@ -184,24 +183,19 @@ export default function Page() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="OS, marca, modelo, defeito, origem..."
+                placeholder="OS, cliente, marca, modelo, defeito..."
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               />
             </label>
 
             <label className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Filtro de origem</span>
-              <select
-                value={selectedOrigin}
-                onChange={(event) => setSelectedOrigin(event.target.value as (typeof ORIGEM_FILTERS)[number])}
+              <span className="text-sm font-medium text-slate-700">Filtro de cliente</span>
+              <input
+                value={selectedClient}
+                onChange={(event) => setSelectedClient(event.target.value)}
+                placeholder="Nome do cliente"
                 className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-              >
-                {ORIGEM_FILTERS.map((origin) => (
-                  <option key={origin} value={origin}>
-                    {origin}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
@@ -342,7 +336,7 @@ export default function Page() {
                                       {os.equipamento?.marca} {os.equipamento?.modelo}
                                     </p>
                                     <p className="text-xs text-slate-500">
-                                      Origem: {os.origem}
+                                      Cliente: {os.cliente}
                                     </p>
                                     {!compactMode && os.equipamento?.defeito && (
                                       <p className="line-clamp-3 text-xs leading-5 text-slate-600">
@@ -398,7 +392,7 @@ export default function Page() {
                       <p className="mt-2 text-xs text-slate-600">
                         {os.equipamento?.marca} {os.equipamento?.modelo}
                       </p>
-                      <p className="mt-1 text-xs text-slate-500">Origem: {os.origem}</p>
+                      <p className="mt-1 text-xs text-slate-500">Cliente: {os.cliente}</p>
                     </Link>
                   ))
                 ) : (

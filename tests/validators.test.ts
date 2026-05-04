@@ -10,7 +10,7 @@ describe("validators", () => {
   it("accepts a valid OS creation payload", () => {
     const input = validateCreateOsInput({
       numero: " 2026-001 ",
-      origem: " Balcao ",
+      cliente: " Paulo Silva ",
       descricao: " Cliente informou intermitencia ",
       tipo: " Notebook ",
       marca: " Dell ",
@@ -20,7 +20,7 @@ describe("validators", () => {
 
     expect(input).toEqual({
       numero: "2026-001",
-      origem: "Balcao",
+      cliente: "Paulo Silva",
       descricao: "Cliente informou intermitencia",
       tipo: "Notebook",
       marca: "Dell",
@@ -33,7 +33,7 @@ describe("validators", () => {
     expect(
       validateCreateOsInput({
         numero: "",
-        origem: "Balcao",
+        cliente: "Paulo Silva",
       })
     ).toBeNull();
   });

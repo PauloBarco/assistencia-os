@@ -2,36 +2,45 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+function getRequiredEnv(name: string) {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Variavel de ambiente obrigatoria ausente: ${name}`);
+  }
+
+  return value;
+}
+
 async function main() {
-  // Verificar se já existe usuário admin
+  const adminUsername = getRequiredEnv("APP_ADMIN_USERNAME");
+  const adminPassword = getRequiredEnv("APP_ADMIN_PASSWORD");
+
   const existingAdmin = await prisma.usuario.findUnique({
-    where: { username: "admin" },
+    where: { username: adminUsername },
   });
 
   if (existingAdmin) {
-    console.log("Usuário admin já existe.");
+    console.log("Usuario admin ja existe.");
     return;
   }
 
-  // Criar usuário admin padrão
-  // Nota: Em produção, use bcrypt para hash de senhas
   await prisma.usuario.create({
     data: {
-      username: "admin",
-      password: "admin123", // Em produção, usar hash: bcrypt.hashSync("admin123", 10)
+      username: adminUsername,
+      password: adminPassword,
       nome: "Administrador",
       isAdmin: true,
     },
   });
 
-  console.log("Usuário admin criado com sucesso!");
-  console.log("  username: admin");
-  console.log("  password: admin123");
+  console.log("Usuario admin criado com sucesso!");
+  console.log(`  username: ${adminUsername}`);
 }
 
 main()
   .catch((e) => {
-    console.error("Erro ao criar usuário admin:", e);
+    console.error("Erro ao criar usuario admin:", e);
     process.exit(1);
   })
   .finally(async () => {
