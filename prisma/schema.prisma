@@ -73,6 +73,7 @@ enum TipoEvento {
   ENVIO_TERCEIRO
   RETORNO_TERCEIRO
   AGUARDANDO_PECA
+  AGUARDANDO_APROVACAO
   FINALIZADO
   ATUALIZACAO
 }
@@ -88,11 +89,17 @@ enum Status {
 }
 
 model Usuario {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  password  String
-  nome      String
-  isAdmin   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  username        String   @unique
+  password        String
+  nome            String
+  isAdmin         Boolean  @default(false)
+  canManageUsers  Boolean  @default(false)
+  canCreateOrders Boolean  @default(true)
+  canEditOrders   Boolean  @default(true)
+  canDeleteOrders Boolean  @default(true)
+  canUpdateStatus Boolean  @default(true)
+  canViewReports  Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

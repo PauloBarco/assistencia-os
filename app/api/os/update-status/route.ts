@@ -1,12 +1,12 @@
 import { recordAuditLog } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 import { jsonError, parseJsonBody } from "@/lib/http";
-import { requireRequestSession } from "@/lib/route-auth";
+import { requirePermission } from "@/lib/route-auth";
 import { validateUpdateStatusInput } from "@/lib/validators";
 import { Prisma } from "@prisma/client";
 
 export async function POST(req: Request) {
-  const auth = requireRequestSession(req);
+  const auth = requirePermission(req, "canUpdateStatus");
 
   if ("response" in auth) {
     return auth.response;

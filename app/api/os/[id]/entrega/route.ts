@@ -1,7 +1,7 @@
 import { recordAuditLog } from "@/lib/audit";
 import { jsonError, parseJsonBody } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
-import { requireRequestSession } from "@/lib/route-auth";
+import { requirePermission } from "@/lib/route-auth";
 import { validateDeliverOsInput } from "@/lib/validators";
 
 type RouteContext = {
@@ -9,7 +9,7 @@ type RouteContext = {
 };
 
 export async function POST(req: Request, context: RouteContext) {
-  const auth = requireRequestSession(req);
+  const auth = requirePermission(req, "canEditOrders");
 
   if ("response" in auth) {
     return auth.response;

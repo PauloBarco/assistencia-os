@@ -1,8 +1,17 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { CreateOsForm } from "@/components/CreateOsForm";
+import { getSessionFromCookies } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 
-export default function NovaOsPage() {
+export default async function NovaOsPage() {
+  const session = await getSessionFromCookies();
+
+  if (!session || !hasPermission(session, "canCreateOrders")) {
+    redirect("/os");
+  }
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef2ff_46%,#ffffff_100%)] px-6 py-10 text-slate-900">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">

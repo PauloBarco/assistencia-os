@@ -42,13 +42,13 @@ describe("validators", () => {
     expect(
       validateCreateEventoInput({
         ordemId: "os-1",
-        tipo: "FINALIZADO",
-        descricao: " Equipamento testado e pronto ",
+        tipo: "AGUARDANDO_APROVACAO",
+        descricao: " Cliente precisa aprovar o orcamento ",
       })
     ).toEqual({
       ordemId: "os-1",
-      tipo: "FINALIZADO",
-      descricao: "Equipamento testado e pronto",
+      tipo: "AGUARDANDO_APROVACAO",
+      descricao: "Cliente precisa aprovar o orcamento",
     });
   });
 

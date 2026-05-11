@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { getConfiguredUsername, getSessionFromCookies } from "@/lib/auth";
+import { getSessionFromCookies } from "@/lib/auth";
 import { LoginForm } from "@/components/LoginForm";
 
 export default async function LoginPage() {
@@ -29,7 +29,7 @@ export default async function LoginPage() {
           <div className="mb-5">
             <h2 className="text-xl font-semibold text-slate-950">Login</h2>
           </div>
-          <LoginForm defaultUsername={getConfiguredUsername()} />
+          <LoginForm />
         </div>
       </div>
     </main>

@@ -2,13 +2,18 @@ import { NextRequest } from "next/server";
 
 import { jsonError, parseJsonBody } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
-import { getSessionFromRequest } from "@/lib/auth";
+import { requirePermission } from "@/lib/route-auth";
+import {
+  readBooleanValue,
+  readPermissionsFromPayload,
+  USER_PERMISSION_SELECT,
+} from "@/lib/permissions";
 
 export async function GET(req: NextRequest) {
-  const session = getSessionFromRequest(req);
-  
-  if (!session || !session.isAdmin) {
-    return jsonError("Nao autorizado", 401);
+  const auth = requirePermission(req, "canManageUsers");
+
+  if ("response" in auth) {
+    return auth.response;
   }
 
   try {
@@ -19,6 +24,7 @@ export async function GET(req: NextRequest) {
         username: true,
         nome: true,
         isAdmin: true,
+        ...USER_PERMISSION_SELECT,
         createdAt: true,
         updatedAt: true,
       },
@@ -32,10 +38,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = getSessionFromRequest(req);
-  
-  if (!session || !session.isAdmin) {
-    return jsonError("Nao autorizado", 401);
+  const auth = requirePermission(req, "canManageUsers");
+
+  if ("response" in auth) {
+    return auth.response;
   }
 
   try {
@@ -44,21 +50,38 @@ export async function POST(req: NextRequest) {
     const username = typeof body === "object" && body !== null && "username" in body ? String(body.username) : "";
     const password = typeof body === "object" && body !== null && "password" in body ? String(body.password) : "";
     const nome = typeof body === "object" && body !== null && "nome" in body ? String(body.nome) : "";
-    const isAdmin = typeof body === "object" && body !== null && "isAdmin" in body ? Boolean(body.isAdmin) : false;
+    const isAdmin =
+      typeof body === "object" && body !== null && "isAdmin" in body
+        ? readBooleanValue(body.isAdmin) ?? false
+        : false;
+    const permissions = readPermissionsFromPayload(body, isAdmin);
 
-    if (!username || !password || !nome) {
+    if (!username.trim() || !password || !nome.trim()) {
       return jsonError("Username, senha e nome sao obrigatorios", 400);
     }
 
     // Verificar se username já existe
-    const existing = await prisma.usuario.findUnique({ where: { username } });
+    const existing = await prisma.usuario.findUnique({ where: { username: username.trim() } });
     if (existing) {
       return jsonError("Username ja existe", 400);
     }
 
     const usuario = await prisma.usuario.create({
-      data: { username, password, nome, isAdmin },
-      select: { id: true, username: true, nome: true, isAdmin: true, createdAt: true },
+      data: {
+        username: username.trim(),
+        password,
+        nome: nome.trim(),
+        isAdmin,
+        ...permissions,
+      },
+      select: {
+        id: true,
+        username: true,
+        nome: true,
+        isAdmin: true,
+        ...USER_PERMISSION_SELECT,
+        createdAt: true,
+      },
     });
 
     return Response.json(usuario);

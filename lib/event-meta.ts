@@ -7,6 +7,7 @@ export const EVENT_META: Record<TipoEvento, { label: string; dot: string }> = {
   ENVIO_TERCEIRO: { label: "Envio terceiro", dot: "bg-violet-500" },
   RETORNO_TERCEIRO: { label: "Retorno terceiro", dot: "bg-fuchsia-500" },
   AGUARDANDO_PECA: { label: "Aguardando peca", dot: "bg-orange-500" },
+  AGUARDANDO_APROVACAO: { label: "Aguardando aprovacao", dot: "bg-yellow-500" },
   FINALIZADO: { label: "Finalizado", dot: "bg-emerald-500" },
   ATUALIZACAO: { label: "Atualizacao", dot: "bg-slate-400" },
 };

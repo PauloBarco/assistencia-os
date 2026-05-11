@@ -8,13 +8,18 @@ import { MarkAsDeliveredForm } from "@/components/MarkAsDeliveredForm";
 import { AddServicoForm } from "@/components/AddServicoForm";
 import { ServiceActions } from "@/components/ServiceActions";
 import { getAuditActionMeta } from "@/lib/audit-meta";
+import { getSessionFromCookies } from "@/lib/auth";
 import { EVENT_META } from "@/lib/event-meta";
 import { formatDateTime } from "@/lib/format";
+import { hasPermission } from "@/lib/permissions";
 import { STATUS_META } from "@/lib/status-meta";
 import Link from "next/link";
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await getSessionFromCookies();
+  const canEditOrders = session ? hasPermission(session, "canEditOrders") : false;
+  const canDeleteOrders = session ? hasPermission(session, "canDeleteOrders") : false;
 
   const os = await prisma.ordemServico.findUnique({
     where: { id },
@@ -136,25 +141,29 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                 </Link>
               </div>
             </div>
-            <EditOsForm
-              ordemId={os.id}
-              initialValues={{
-                numero: os.numeroExterno,
-                cliente: os.cliente,
-                descricao: os.descricao,
-                tipo: os.equipamento?.tipo,
-                marca: os.equipamento?.marca,
-                modelo: os.equipamento?.modelo,
-                serial: os.equipamento?.serial,
-                defeito: os.equipamento?.defeito,
-              }}
-            />
-            {os.statusAtual !== "ENTREGUE" && (
-              <MarkAsDeliveredForm ordemId={os.id} />
+            {canEditOrders && (
+              <>
+                <EditOsForm
+                  ordemId={os.id}
+                  initialValues={{
+                    numero: os.numeroExterno,
+                    cliente: os.cliente,
+                    descricao: os.descricao,
+                    tipo: os.equipamento?.tipo,
+                    marca: os.equipamento?.marca,
+                    modelo: os.equipamento?.modelo,
+                    serial: os.equipamento?.serial,
+                    defeito: os.equipamento?.defeito,
+                  }}
+                />
+                {os.statusAtual !== "ENTREGUE" && (
+                  <MarkAsDeliveredForm ordemId={os.id} />
+                )}
+                <AddServicoForm ordemId={os.id} />
+                <AddEvento ordemId={os.id} />
+              </>
             )}
-            <AddServicoForm ordemId={os.id} />
-            <AddEvento ordemId={os.id} />
-            <DeleteOsButton ordemId={os.id} numeroExterno={os.numeroExterno} />
+            {canDeleteOrders && <DeleteOsButton ordemId={os.id} numeroExterno={os.numeroExterno} />}
           </div>
 
           <div className="space-y-6">
@@ -175,15 +184,17 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                           </span>
                           <span className="text-xs text-slate-400">{formatDateTime(servico.createdAt)}</span>
                         </div>
-                        <DeleteServicoButton ordemId={os.id} servicoId={servico.id} />
+                        {canEditOrders && <DeleteServicoButton ordemId={os.id} servicoId={servico.id} />}
                       </div>
                       <p className="mt-3 text-sm leading-7 text-slate-700">{servico.descricao}</p>
-                      <ServiceActions
-                        ordemId={os.id}
-                        servicoId={servico.id}
-                        initialDescription={servico.descricao}
-                        initialTecnico={servico.tecnico}
-                      />
+                      {canEditOrders && (
+                        <ServiceActions
+                          ordemId={os.id}
+                          servicoId={servico.id}
+                          initialDescription={servico.descricao}
+                          initialTecnico={servico.tecnico}
+                        />
+                      )}
                     </div>
                   ))
                 ) : (
@@ -224,7 +235,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
                         </div>
 
                         <p className="mt-3 text-sm leading-7 text-slate-700">{e.descricao}</p>
-                        <EventActions eventId={e.id} initialDescription={e.descricao} />
+                        {canEditOrders && <EventActions eventId={e.id} initialDescription={e.descricao} />}
                       </div>
                     </div>
                   ))

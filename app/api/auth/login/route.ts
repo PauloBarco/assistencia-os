@@ -17,8 +17,14 @@ export async function POST(req: Request) {
       return jsonError("Credenciais invalidas", 401);
     }
 
-    await setSessionCookie(user.username, user.isAdmin);
-    return Response.json({ ok: true, username: user.username, nome: user.nome, isAdmin: user.isAdmin });
+    await setSessionCookie(user.username, user.isAdmin, user.permissions);
+    return Response.json({
+      ok: true,
+      username: user.username,
+      nome: user.nome,
+      isAdmin: user.isAdmin,
+      permissions: user.permissions,
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "INVALID_JSON") {
       return jsonError("Corpo JSON invalido", 400);

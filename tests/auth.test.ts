@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import "./auth-helpers";
 
 import { createSessionToken, getSessionFromCookieHeader, verifySessionToken } from "@/lib/auth";
-import { requireRequestSession } from "@/lib/route-auth";
+import { requirePermission, requireRequestSession } from "@/lib/route-auth";
 
 describe("auth helpers", () => {
   it("creates and validates a session token", () => {
@@ -19,6 +19,10 @@ describe("auth helpers", () => {
 
     expect(session).toMatchObject({
       username: "paulo",
+      permissions: {
+        canCreateOrders: true,
+        canManageUsers: false,
+      },
     });
   });
 
@@ -31,6 +35,26 @@ describe("auth helpers", () => {
       expect(result.response.status).toBe(401);
       await expect(result.response.json()).resolves.toEqual({
         error: "Nao autenticado",
+      });
+    }
+  });
+
+  it("returns 403 when the session lacks the required permission", async () => {
+    const token = createSessionToken("operador", false, { canCreateOrders: false });
+    const request = new Request("http://localhost/api/os", {
+      headers: {
+        cookie: `assistencia_session=${token}`,
+      },
+    });
+
+    const result = requirePermission(request, "canCreateOrders");
+
+    expect("response" in result).toBe(true);
+
+    if ("response" in result) {
+      expect(result.response.status).toBe(403);
+      await expect(result.response.json()).resolves.toEqual({
+        error: "Sem permissao para esta acao",
       });
     }
   });

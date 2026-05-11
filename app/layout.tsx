@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getSessionFromCookies } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 import { LogoutButton } from "@/components/LogoutButton";
 import "./globals.css";
 
@@ -31,10 +32,12 @@ export default async function RootLayout({
                 <Link href="/os" className="text-sm text-slate-600 hover:text-slate-900">
                   Ordens
                 </Link>
-                <Link href="/relatorios" className="text-sm text-slate-600 hover:text-slate-900">
-                  Relatorios
-                </Link>
-                {session.isAdmin && (
+                {hasPermission(session, "canViewReports") && (
+                  <Link href="/relatorios" className="text-sm text-slate-600 hover:text-slate-900">
+                    Relatorios
+                  </Link>
+                )}
+                {hasPermission(session, "canManageUsers") && (
                   <Link href="/usuarios" className="text-sm text-blue-600 hover:underline">
                     Usuarios
                   </Link>

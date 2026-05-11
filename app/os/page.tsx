@@ -3,8 +3,10 @@ export const runtime = "nodejs";
 import type { Prisma, Status } from "@prisma/client";
 import Link from "next/link";
 
+import { getSessionFromCookies } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime } from "@/lib/format";
+import { hasPermission } from "@/lib/permissions";
 import { STATUS_META } from "@/lib/status-meta";
 
 type SearchParams = Promise<{
@@ -52,6 +54,8 @@ function isStatus(value: string): value is Status {
 }
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
+  const session = await getSessionFromCookies();
+  const canCreateOrders = session ? hasPermission(session, "canCreateOrders") : false;
   const { page, q, status, from, to, sort } = await searchParams;
   const parsedPage = Number.parseInt(page || "1", 10);
   const currentPage = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
@@ -148,12 +152,14 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
               >
                 Voltar ao painel
               </Link>
-              <Link
-                href="/os/nova"
-                className="inline-flex rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
-                Nova ordem
-              </Link>
+              {canCreateOrders && (
+                <Link
+                  href="/os/nova"
+                  className="inline-flex rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                >
+                  Nova ordem
+                </Link>
+              )}
             </div>
           </div>
 
@@ -292,12 +298,14 @@ export default async function Page({ searchParams }: { searchParams: SearchParam
                 >
                   Limpar filtros
                 </Link>
-                <Link
-                  href="/os/nova"
-                  className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Nova ordem
-                </Link>
+                {canCreateOrders && (
+                  <Link
+                    href="/os/nova"
+                    className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                  >
+                    Nova ordem
+                  </Link>
+                )}
               </div>
             </div>
           )}

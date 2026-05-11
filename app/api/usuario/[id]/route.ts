@@ -2,17 +2,25 @@ import { NextRequest } from "next/server";
 
 import { jsonError, parseJsonBody } from "@/lib/http";
 import { prisma } from "@/lib/prisma";
-import { getSessionFromRequest } from "@/lib/auth";
+import { requirePermission } from "@/lib/route-auth";
+import {
+  getEffectivePermissions,
+  readBooleanValue,
+  readPermissionsFromPayload,
+  USER_PERMISSION_FIELDS,
+  USER_PERMISSION_SELECT,
+  type UserPermissions,
+} from "@/lib/permissions";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
-  const session = getSessionFromRequest(req);
-  
-  if (!session || !session.isAdmin) {
-    return jsonError("Nao autorizado", 401);
+  const auth = requirePermission(req, "canManageUsers");
+
+  if ("response" in auth) {
+    return auth.response;
   }
 
   try {
@@ -20,7 +28,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const usuario = await prisma.usuario.findUnique({
       where: { id },
-      select: { id: true, username: true, nome: true, isAdmin: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        username: true,
+        nome: true,
+        isAdmin: true,
+        ...USER_PERMISSION_SELECT,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     if (!usuario) {
@@ -35,10 +51,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function PUT(req: NextRequest, { params }: RouteParams) {
-  const session = getSessionFromRequest(req);
-  
-  if (!session || !session.isAdmin) {
-    return jsonError("Nao autorizado", 401);
+  const auth = requirePermission(req, "canManageUsers");
+
+  if ("response" in auth) {
+    return auth.response;
   }
 
   try {
@@ -47,19 +63,41 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     const nome = typeof body === "object" && body !== null && "nome" in body ? String(body.nome) : null;
     const password = typeof body === "object" && body !== null && "password" in body ? String(body.password) : null;
-    const isAdmin = typeof body === "object" && body !== null && "isAdmin" in body ? Boolean(body.isAdmin) : null;
+    const isAdmin = typeof body === "object" && body !== null && "isAdmin" in body ? readBooleanValue(body.isAdmin) : undefined;
+    const hasPermissionInput =
+      typeof body === "object" &&
+      body !== null &&
+      USER_PERMISSION_FIELDS.some((permission) => permission in body);
 
     // Verificar se usuario existe
-    const existing = await prisma.usuario.findUnique({ where: { id } });
+    const existing = await prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        username: true,
+        isAdmin: true,
+        ...USER_PERMISSION_SELECT,
+      },
+    });
     if (!existing) {
       return jsonError("Usuario nao encontrado", 404);
     }
 
-    const updateData: { nome?: string; password?: string; isAdmin?: boolean } = {};
+    const updateData: { nome?: string; password?: string; isAdmin?: boolean } & Partial<UserPermissions> = {};
     
-    if (nome) updateData.nome = nome;
+    if (nome?.trim()) updateData.nome = nome.trim();
     if (password) updateData.password = password;
-    if (isAdmin !== null && isAdmin !== undefined) updateData.isAdmin = isAdmin;
+    if (isAdmin !== undefined) updateData.isAdmin = isAdmin;
+
+    if (isAdmin !== undefined || hasPermissionInput) {
+      const nextPermissions = readPermissionsFromPayload(
+        body,
+        isAdmin ?? existing.isAdmin,
+        getEffectivePermissions(existing)
+      );
+
+      Object.assign(updateData, nextPermissions);
+    }
 
     if (Object.keys(updateData).length === 0) {
       return jsonError("Nenhum campo para atualizar", 400);
@@ -68,7 +106,15 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
     const usuario = await prisma.usuario.update({
       where: { id },
       data: updateData,
-      select: { id: true, username: true, nome: true, isAdmin: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        username: true,
+        nome: true,
+        isAdmin: true,
+        ...USER_PERMISSION_SELECT,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     return Response.json(usuario);
@@ -83,10 +129,10 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 }
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  const session = getSessionFromRequest(req);
-  
-  if (!session || !session.isAdmin) {
-    return jsonError("Nao autorizado", 401);
+  const auth = requirePermission(req, "canManageUsers");
+
+  if ("response" in auth) {
+    return auth.response;
   }
 
   try {
@@ -99,7 +145,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     }
 
     // Impedir auto-exclusão
-    if (existing.username === session.username) {
+    if (existing.username === auth.session.username) {
       return jsonError("Nao e permitido excluir a si mesmo", 400);
     }
 

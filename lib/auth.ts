@@ -3,6 +3,11 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 
+import {
+  getEffectivePermissions,
+  type UserPermissions,
+  USER_PERMISSION_SELECT,
+} from "@/lib/permissions";
 import { prisma } from "./prisma";
 
 const AUTH_COOKIE_NAME = "assistencia_session";
@@ -11,6 +16,7 @@ const SESSION_DURATION_SECONDS = 60 * 60 * 12;
 export type SessionPayload = {
   username: string;
   isAdmin: boolean;
+  permissions: UserPermissions;
   exp: number;
 };
 
@@ -34,7 +40,14 @@ function getSessionSecret() {
 export async function authenticateUser(username: string, password: string) {
   const user = await prisma.usuario.findUnique({
     where: { username },
-    select: { id: true, username: true, password: true, nome: true, isAdmin: true },
+    select: {
+      id: true,
+      username: true,
+      password: true,
+      nome: true,
+      isAdmin: true,
+      ...USER_PERMISSION_SELECT,
+    },
   });
 
   if (!user) {
@@ -47,7 +60,12 @@ export async function authenticateUser(username: string, password: string) {
     return null;
   }
 
-  return { username: user.username, nome: user.nome, isAdmin: user.isAdmin };
+  return {
+    username: user.username,
+    nome: user.nome,
+    isAdmin: user.isAdmin,
+    permissions: getEffectivePermissions(user),
+  };
 }
 
 /**
@@ -56,16 +74,8 @@ export async function authenticateUser(username: string, password: string) {
 export async function getUserByUsername(username: string) {
   return prisma.usuario.findUnique({
     where: { username },
-    select: { id: true, username: true, nome: true, isAdmin: true },
+    select: { id: true, username: true, nome: true, isAdmin: true, ...USER_PERMISSION_SELECT },
   });
-}
-
-export function getConfiguredUsername() {
-  return getRequiredEnv("APP_ADMIN_USERNAME");
-}
-
-export function getConfiguredPassword() {
-  return getRequiredEnv("APP_ADMIN_PASSWORD");
 }
 
 export function isUsingPlaceholderAuthConfig() {
@@ -107,11 +117,16 @@ function parseCookieHeader(cookieHeader?: string | null) {
   );
 }
 
-export function createSessionToken(username: string, isAdmin: boolean = false) {
+export function createSessionToken(
+  username: string,
+  isAdmin: boolean = false,
+  permissions?: Partial<UserPermissions>
+) {
   const payload = base64UrlEncode(
     JSON.stringify({
       username,
       isAdmin,
+      permissions: getEffectivePermissions({ isAdmin, permissions }),
       exp: Math.floor(Date.now() / 1000) + SESSION_DURATION_SECONDS,
     } satisfies SessionPayload)
   );
@@ -140,13 +155,25 @@ export function verifySessionToken(token?: string | null) {
   }
 
   try {
-    const decoded = JSON.parse(base64UrlDecode(payload)) as SessionPayload;
+    const decoded = JSON.parse(base64UrlDecode(payload)) as Partial<SessionPayload>;
 
-    if (!decoded.username || decoded.exp < Math.floor(Date.now() / 1000)) {
+    if (
+      !decoded.username ||
+      typeof decoded.exp !== "number" ||
+      decoded.exp < Math.floor(Date.now() / 1000)
+    ) {
       return null;
     }
 
-    return decoded;
+    return {
+      username: decoded.username,
+      isAdmin: Boolean(decoded.isAdmin),
+      permissions: getEffectivePermissions({
+        isAdmin: Boolean(decoded.isAdmin),
+        permissions: decoded.permissions,
+      }),
+      exp: decoded.exp,
+    } satisfies SessionPayload;
   } catch {
     return null;
   }
@@ -161,9 +188,13 @@ export async function getSessionFromCookies() {
   return verifySessionToken(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 }
 
-export async function setSessionCookie(username: string, isAdmin: boolean = false) {
+export async function setSessionCookie(
+  username: string,
+  isAdmin: boolean = false,
+  permissions?: Partial<UserPermissions>
+) {
   const cookieStore = await cookies();
-  cookieStore.set(AUTH_COOKIE_NAME, createSessionToken(username, isAdmin), {
+  cookieStore.set(AUTH_COOKIE_NAME, createSessionToken(username, isAdmin, permissions), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

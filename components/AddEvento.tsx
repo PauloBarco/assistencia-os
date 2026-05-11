@@ -15,6 +15,7 @@ const EVENT_OPTIONS: Array<{
   { value: "ENVIO_TERCEIRO", label: "Envio para terceiro", hint: "Marca a OS como enviada para parceiro." },
   { value: "RETORNO_TERCEIRO", label: "Retorno de terceiro", hint: "Registra retorno sem mudar status automaticamente." },
   { value: "AGUARDANDO_PECA", label: "Aguardando peca", hint: "Sinaliza dependencia de pecas." },
+  { value: "AGUARDANDO_APROVACAO", label: "Aguardando aprovacao", hint: "Registra que a OS depende de aprovacao." },
   { value: "FINALIZADO", label: "Finalizado", hint: "Marca a OS como pronta para entrega." },
 ];
 

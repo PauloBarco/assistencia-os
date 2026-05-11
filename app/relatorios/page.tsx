@@ -2,7 +2,10 @@ export const runtime = "nodejs";
 
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
+import { getSessionFromCookies } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import { STATUS_META } from "@/lib/status-meta";
 
@@ -12,6 +15,12 @@ type SearchParams = Promise<{
 }>;
 
 export default async function Page({ searchParams }: { searchParams: SearchParams }) {
+  const session = await getSessionFromCookies();
+
+  if (!session || !hasPermission(session, "canViewReports")) {
+    redirect("/os");
+  }
+
   const { from, to } = await searchParams;
   const dateFrom = from || "";
   const dateTo = to || "";
